@@ -38,7 +38,7 @@ package struct SchemaGenerator {
                 continue
             }
 
-            output += try generateObjectTypeDefinition(for: objectType, resolvers: "resolvers")
+            output += try generateObjectTypeDefinition(for: objectType, resolvers: "resolvers").indent(1)
             output += "\n"
         }
 
@@ -50,19 +50,19 @@ package struct SchemaGenerator {
                 continue
             }
 
-            output += try generateEnumTypeDefinition(for: enumType)
+            output += try generateEnumTypeDefinition(for: enumType).indent(1)
             output += "\n"
         }
 
         // Generate Query type
         if let queryType = schema.queryType {
-            output += try generateQueryTypeDefinition(for: queryType, resolvers: "resolvers")
+            output += try generateQueryTypeDefinition(for: queryType, resolvers: "resolvers").indent(1)
             output += "\n"
         }
 
         // Generate Mutation type if it exists
         if let mutationType = schema.mutationType {
-            output += try generateMutationTypeDefinition(for: mutationType, resolvers: "resolvers")
+            output += try generateMutationTypeDefinition(for: mutationType, resolvers: "resolvers").indent(1)
             output += "\n"
         }
 
@@ -73,7 +73,10 @@ package struct SchemaGenerator {
         """
 
         if schema.mutationType != nil {
-            output += ",\n        mutation: mutationType"
+            output += """
+            ,
+                    mutation: mutationType
+            """
         }
 
         output += """
@@ -90,23 +93,22 @@ package struct SchemaGenerator {
         let varName = nameGenerator.swiftMemberName(for: type.name) + "Type"
 
         var output = """
-            let \(varName) = try GraphQLObjectType(
-                name: "\(type.name)",
-
+        let \(varName) = try GraphQLObjectType(
+            name: "\(type.name)",
         """
 
         if let description = type.description {
             output += """
-                    description: \"\"\"
-            \(description)
-            \"\"\",
 
+                description: \"\"\"
+                \(description)
+                \"\"\",
             """
         }
 
         output += """
-                fields: [
 
+            fields: [
         """
 
         // Generate fields
@@ -122,13 +124,13 @@ package struct SchemaGenerator {
                 resolvers: resolvers,
                 isRootType: false,
                 needsResolver: needsResolver
-            )
+            ).indent(2)
         }
 
         output += """
-                ]
-            )
 
+            ]
+        )
         """
 
         return output
@@ -138,55 +140,57 @@ package struct SchemaGenerator {
         let varName = nameGenerator.swiftMemberName(for: type.name) + "Type"
 
         var output = """
-            let \(varName) = try GraphQLEnumType(
-                name: "\(type.name)",
 
+        let \(varName) = try GraphQLEnumType(
+            name: "\(type.name)",
         """
 
         if let description = type.description {
             output += """
-                    description: \"\"\"
-            \(description)
-            \"\"\",
 
+                description: \"\"\"
+                \(description.indent(1, includeFirst: false))
+                \"\"\",
             """
         }
 
         output += """
-                values: [
 
+            values: [
         """
 
         for value in type.values {
             let safeCaseName = nameGenerator.swiftMemberName(for: value.name)
             output += """
-                        "\(value.name)": GraphQLEnumValue(
 
+                    "\(value.name)": GraphQLEnumValue(
             """
 
             if let description = value.description {
                 output += """
-                            value: \(safeCaseName),
-                            description: \"\"\"\(description)\"\"\"
 
+                            value: \(safeCaseName),
+                            description:  \"\"\"
+                            \(description.indent(3, includeFirst: false))
+                            \"\"\",
                 """
             } else {
                 output += """
-                            value: Map.string("\(value.name)")
 
+                            value: Map.string("\(value.name)")
                 """
             }
 
             output += """
-                        ),
 
+                    ),
             """
         }
 
         output += """
-                ]
-            )
 
+            ]
+        )
         """
 
         return output
@@ -194,23 +198,23 @@ package struct SchemaGenerator {
 
     private func generateQueryTypeDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
         var output = """
-            let queryType = try GraphQLObjectType(
-                name: "Query",
 
+        let queryType = try GraphQLObjectType(
+            name: "Query",
         """
 
         if let description = type.description {
             output += """
-                    description: \"\"\"
-            \(description)
-            \"\"\",
 
+                description: \"\"\"
+                \(description.indent(1, includeFirst: false))
+                \"\"\",
             """
         }
 
         output += """
-                fields: [
 
+            fields: [
         """
 
         // Generate fields
@@ -222,13 +226,13 @@ package struct SchemaGenerator {
                 parentTypeName: "Query",
                 resolvers: resolvers,
                 isRootType: true
-            )
+            ).indent(2)
         }
 
         output += """
-                ]
-            )
 
+            ]
+        )
         """
 
         return output
@@ -236,23 +240,23 @@ package struct SchemaGenerator {
 
     private func generateMutationTypeDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
         var output = """
-            let mutationType = try GraphQLObjectType(
-                name: "Mutation",
 
+        let mutationType = try GraphQLObjectType(
+            name: "Mutation",
         """
 
         if let description = type.description {
             output += """
-                    description: \"\"\"
-            \(description)
-            \"\"\",
 
+                description: \"\"\"
+                \(description.indent(1, includeFirst: false))
+                \"\"\",
             """
         }
 
         output += """
-                fields: [
 
+            fields: [
         """
 
         // Generate fields
@@ -264,13 +268,13 @@ package struct SchemaGenerator {
                 parentTypeName: "Mutation",
                 resolvers: resolvers,
                 isRootType: true
-            )
+            ).indent(2)
         }
 
         output += """
-                ]
-            )
 
+            ]
+        )
         """
 
         return output
@@ -285,52 +289,52 @@ package struct SchemaGenerator {
         needsResolver: Bool = true
     ) throws -> String {
         var output = """
-                    "\(fieldName)": GraphQLField(
-                        type: \(try graphQLTypeReference(for: field.type)),
 
+        "\(fieldName)": GraphQLField(
+            type: \(try graphQLTypeReference(for: field.type)),
         """
 
         if let description = field.description {
             output += """
-                            description: \"\"\"
+
+                description: \"\"\"
                 \(description)
                 \"\"\",
-
             """
         }
 
         // Add arguments if any
         if !field.args.isEmpty {
             output += """
-                            args: [
 
+                args: [
             """
 
             for (argName, arg) in field.args {
                 output += """
-                                    "\(argName)": GraphQLArgument(
-                                        type: \(try graphQLTypeReference(for: arg.type))
 
+                        "\(argName)": GraphQLArgument(
+                            type: \(try graphQLTypeReference(for: arg.type))
                 """
 
                 if let description = arg.description {
                     output += """
-                                            , description: \"\"\"
-                        \(description)
-                        \"\"\"
-
+                    ,
+                            description: \"\"\"
+                            \(description)
+                            \"\"\"
                     """
                 }
 
                 output += """
-                                    ),
 
+                        ),
                 """
             }
 
             output += """
-                            ],
 
+                ],
             """
         }
 
@@ -342,12 +346,12 @@ package struct SchemaGenerator {
                 parentTypeName: parentTypeName,
                 resolvers: resolvers,
                 isRootType: isRootType
-            )
+            ).indent(1)
         }
 
         output += """
-                    ),
 
+        ),
         """
 
         return output
@@ -363,8 +367,8 @@ package struct SchemaGenerator {
         let safeFieldName = nameGenerator.swiftMemberName(for: fieldName)
 
         var output = """
-                        resolve: { source, args, context, _ in
 
+        resolve: { source, args, context, _ in
         """
 
         // Build argument list
@@ -374,10 +378,10 @@ package struct SchemaGenerator {
             // For nested resolvers, first argument is the parent object
             let safeParentTypeName = nameGenerator.swiftTypeName(for: parentTypeName)
             output += """
-                                guard let parent = source as? \(safeParentTypeName) else {
-                                    throw GraphQLError(message: "Invalid source type for \(parentTypeName).\(fieldName)")
-                                }
 
+                guard let parent = source as? \(safeParentTypeName) else {
+                    throw GraphQLError(message: "Invalid source type for \(parentTypeName).\(fieldName)")
+                }
             """
             argsList.append("parent: parent")
         }
@@ -392,18 +396,18 @@ package struct SchemaGenerator {
             // Extract value from Map based on type
             if isOptional {
                 output += """
-                                    let \(safeArgName): \(swiftType) = args["\(argName)"].map { try! \(conversionCode) }
 
+                    let \(safeArgName): \(swiftType) = args["\(argName)"].map { try! \(conversionCode) }
                 """
             } else {
                 output += """
-                                    let \(safeArgName): \(swiftType)
-                                    if let value = args["\(argName)"] {
-                                        \(safeArgName) = try \(conversionCode)
-                                    } else {
-                                        throw GraphQLError(message: "Required argument '\(argName)' is missing")
-                                    }
 
+                    let \(safeArgName): \(swiftType)
+                    if let value = args["\(argName)"] {
+                        \(safeArgName) = try \(conversionCode)
+                    } else {
+                        throw GraphQLError(message: "Required argument '\(argName)' is missing")
+                    }
                 """
             }
 
@@ -424,9 +428,9 @@ package struct SchemaGenerator {
         }
 
         output += """
-                                return try await \(resolvers).\(resolverMethodName)(\(argsList.joined(separator: ", ")))
-                            }
 
+            return try await \(resolvers).\(resolverMethodName)(\(argsList.joined(separator: ", ")))
+        }
         """
 
         return output
