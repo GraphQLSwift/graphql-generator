@@ -2,16 +2,16 @@ import Foundation
 import GraphQL
 
 /// Main code generator that orchestrates generation of all Swift files
-public struct CodeGenerator {
+package struct CodeGenerator {
     let schema: GraphQLSchema
 
-    public init(schema: GraphQLSchema) {
+    package init(schema: GraphQLSchema) {
         self.schema = schema
     }
 
     /// Generate all Swift files from the schema
     /// Returns a dictionary of filename -> file content
-    public func generate() throws -> [String: String] {
+    package func generate() throws -> [String: String] {
         var files: [String: String] = [:]
 
         // Generate Types.swift

@@ -14,7 +14,7 @@
 import Foundation
 
 /// Computes a string sanitized to be usable as a Swift identifier in various contexts.
-public protocol SafeNameGenerator {
+protocol SafeNameGenerator {
 
     /// Returns a string sanitized to be usable as a Swift type name in a general context.
     /// - Parameter documentedName: The input unsanitized string from the OpenAPI document.
@@ -38,10 +38,15 @@ public protocol SafeNameGenerator {
 ///
 /// In addition to replacing illegal characters, it also
 /// ensures that the identifier starts with a letter and not a number.
-public struct DefensiveSafeNameGenerator: SafeNameGenerator {
+struct DefensiveSafeNameGenerator: SafeNameGenerator {
+    func swiftTypeName(for documentedName: String) -> String {
+        swiftName(for: documentedName)
+    }
 
-    public func swiftTypeName(for documentedName: String) -> String { swiftName(for: documentedName) }
-    public func swiftMemberName(for documentedName: String) -> String { swiftName(for: documentedName) }
+    func swiftMemberName(for documentedName: String) -> String {
+        swiftName(for: documentedName)
+    }
+
     private func swiftName(for documentedName: String) -> String {
         guard !documentedName.isEmpty else { return "_empty" }
 
@@ -104,7 +109,7 @@ public struct DefensiveSafeNameGenerator: SafeNameGenerator {
     ]
 }
 
-public extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
+extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
     static var defensive: DefensiveSafeNameGenerator { DefensiveSafeNameGenerator() }
 }
 
@@ -115,13 +120,13 @@ public extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
 /// matching `safeForSwiftCode_defensive`.
 ///
 /// Check out [SOAR-0013](https://swiftpackageindex.com/apple/swift-openapi-generator/documentation/swift-openapi-generator/soar-0013) for details.
-public struct IdiomaticSafeNameGenerator: SafeNameGenerator {
+struct IdiomaticSafeNameGenerator: SafeNameGenerator {
 
     /// The defensive strategy to use as fallback.
-    public var defensive: DefensiveSafeNameGenerator
+    var defensive: DefensiveSafeNameGenerator
 
-    public func swiftTypeName(for documentedName: String) -> String { swiftName(for: documentedName, capitalize: true) }
-    public func swiftMemberName(for documentedName: String) -> String { swiftName(for: documentedName, capitalize: false) }
+    func swiftTypeName(for documentedName: String) -> String { swiftName(for: documentedName, capitalize: true) }
+    func swiftMemberName(for documentedName: String) -> String { swiftName(for: documentedName, capitalize: false) }
     private func swiftName(for documentedName: String, capitalize: Bool) -> String {
         if documentedName.isEmpty { return capitalize ? "_Empty_" : "_empty_" }
 
@@ -292,6 +297,6 @@ public struct IdiomaticSafeNameGenerator: SafeNameGenerator {
     private static let wordSeparators: Set<Character> = ["_", "-", " ", "/", "+"]
 }
 
-public extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
+extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
     static var idiomatic: IdiomaticSafeNameGenerator { IdiomaticSafeNameGenerator(defensive: .defensive) }
 }
