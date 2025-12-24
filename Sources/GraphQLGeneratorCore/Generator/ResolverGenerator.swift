@@ -4,6 +4,7 @@ import GraphQL
 /// Generates resolver protocol from GraphQL schema
 package struct ResolverGenerator {
     let schema: GraphQLSchema
+    let nameGenerator: SafeNameGenerator = .idiomatic
 
     package init(schema: GraphQLSchema) {
         self.schema = schema
@@ -65,14 +66,14 @@ package struct ResolverGenerator {
                 output += "    /// \(description)\n"
             }
 
-            let returnType = try swiftTypeName(for: field.type)
+            let returnType = try swiftTypeName(for: field.type, nameGenerator: nameGenerator)
 
             // Generate parameter list
             var params: [String] = []
 
             // Add arguments
             for (argName, arg) in field.args {
-                let argType = try swiftTypeName(for: arg.type)
+                let argType = try swiftTypeName(for: arg.type, nameGenerator: nameGenerator)
                 params.append("\(argName): \(argType)")
             }
 
@@ -108,14 +109,14 @@ package struct ResolverGenerator {
                 output += "    /// \(description)\n"
             }
 
-            let returnType = try swiftTypeName(for: field.type)
+            let returnType = try swiftTypeName(for: field.type, nameGenerator: nameGenerator)
 
             // Parent parameter is the type itself
             var params: [String] = ["parent: \(type.name)"]
 
             // Add arguments if any
             for (argName, arg) in field.args {
-                let argType = try swiftTypeName(for: arg.type)
+                let argType = try swiftTypeName(for: arg.type, nameGenerator: nameGenerator)
                 params.append("\(argName): \(argType)")
             }
 
@@ -130,30 +131,6 @@ package struct ResolverGenerator {
         return output
     }
 
-    /// Convert GraphQL type to Swift type name
-    private func swiftTypeName(for type: GraphQLType) throws -> String {
-        if let nonNull = type as? GraphQLNonNull {
-            return try swiftTypeName(for: nonNull.ofType)
-        }
-
-        if let list = type as? GraphQLList {
-            let innerType = try swiftTypeName(for: list.ofType)
-            if innerType.hasSuffix("?") {
-                let baseType = String(innerType.dropLast())
-                return "[\(baseType)]?"
-            }
-            return "[\(innerType)]?"
-        }
-
-        if let namedType = type as? GraphQLNamedType {
-            let typeName = namedType.name
-            let swiftType = mapScalarType(typeName)
-            return "\(swiftType)?"
-        }
-
-        throw GeneratorError.unsupportedType("Unknown type: \(type)")
-    }
-
     /// Unwrap GraphQL type to get the base type
     private func unwrapType(_ type: GraphQLType) -> GraphQLType {
         if let nonNull = type as? GraphQLNonNull {
@@ -163,17 +140,5 @@ package struct ResolverGenerator {
             return unwrapType(list.ofType)
         }
         return type
-    }
-
-    /// Map GraphQL scalar types to Swift types
-    private func mapScalarType(_ graphQLType: String) -> String {
-        switch graphQLType {
-        case "ID": return "String"
-        case "String": return "String"
-        case "Int": return "Int"
-        case "Float": return "Double"
-        case "Boolean": return "Bool"
-        default: return graphQLType
-        }
     }
 }

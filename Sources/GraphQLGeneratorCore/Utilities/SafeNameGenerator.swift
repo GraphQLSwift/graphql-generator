@@ -1,3 +1,5 @@
+// Copied from https://github.com/apple/swift-openapi-generator/blob/a6928974a6132e5de7376de2f2db4e867802add7/Sources/_OpenAPIGeneratorCore/Translator/TypeAssignment/SafeNameGenerator.swift
+
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftOpenAPIGenerator open source project

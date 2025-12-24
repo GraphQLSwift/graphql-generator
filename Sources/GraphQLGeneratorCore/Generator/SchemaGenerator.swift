@@ -385,7 +385,7 @@ package struct SchemaGenerator {
         // Add field arguments
         for (argName, arg) in field.args {
             let safeArgName = nameGenerator.swiftMemberName(for: argName)
-            let swiftType = try swiftTypeName(for: arg.type)
+            let swiftType = try swiftTypeName(for: arg.type, nameGenerator: nameGenerator)
             let conversionCode = try mapConversionCode(for: arg.type, valueName: "value", swiftType: swiftType)
             let isOptional = !(arg.type is GraphQLNonNull)
 
@@ -462,34 +462,6 @@ package struct SchemaGenerator {
         throw GeneratorError.unsupportedType("Unknown type: \(type)")
     }
 
-    /// Convert GraphQL type to Swift type name for argument parsing
-    private func swiftTypeName(for type: GraphQLType) throws -> String {
-        if let nonNull = type as? GraphQLNonNull {
-            return try swiftTypeName(for: nonNull.ofType)
-        }
-
-        if let list = type as? GraphQLList {
-            let innerType = try swiftTypeName(for: list.ofType)
-            return "[\(innerType)]"
-        }
-
-        if let namedType = type as? GraphQLNamedType {
-            let typeName = namedType.name
-
-            switch typeName {
-            case "ID": return "String"
-            case "String": return "String"
-            case "Int": return "Int"
-            case "Float": return "Double"
-            case "Boolean": return "Bool"
-            default:
-                return nameGenerator.swiftTypeName(for: typeName)
-            }
-        }
-
-        throw GeneratorError.unsupportedType("Unknown type: \(type)")
-    }
-
     /// Generate code to convert a Map value to a Swift type
     private func mapConversionCode(for type: GraphQLType, valueName: String, swiftType: String) throws -> String {
         // For non-null types, unwrap and convert
@@ -500,7 +472,7 @@ package struct SchemaGenerator {
 
         // For list types, map over the array
         if let list = type as? GraphQLList {
-            return "\(valueName).arrayValue?.map { try! \(try swiftTypeName(for: list.ofType))($0) }"
+            return "try \(valueName).arrayValue?.map { try \(try swiftTypeName(for: list.ofType, nameGenerator: nameGenerator))($0) }"
         }
 
         // For named types, convert based on scalar type

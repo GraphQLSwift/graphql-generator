@@ -70,7 +70,7 @@ package struct TypeGenerator {
                 output += "    /// \(description)\n"
             }
 
-            let swiftType = try swiftTypeName(for: field.type)
+            let swiftType = try swiftTypeName(for: field.type, nameGenerator: nameGenerator)
             let safeFieldName = nameGenerator.swiftMemberName(for: fieldName)
             output += "    public let \(safeFieldName): \(swiftType)\n"
         }
@@ -106,49 +106,6 @@ package struct TypeGenerator {
         output += "}\n"
 
         return output
-    }
-
-    /// Convert GraphQL type to Swift type name
-    private func swiftTypeName(for type: GraphQLType) throws -> String {
-        // GraphQLNonNull means the field is required (non-optional)
-        if let nonNull = type as? GraphQLNonNull {
-            let innerType = try swiftTypeName(for: nonNull.ofType)
-            // Remove the optional marker if present
-            if innerType.hasSuffix("?") {
-                return String(innerType.dropLast())
-            }
-            return innerType
-        }
-
-        // GraphQLList means an array
-        if let list = type as? GraphQLList {
-            let innerType = try swiftTypeName(for: list.ofType)
-            return "[\(innerType)]?"
-        }
-
-        // Named types (scalars, enums, objects)
-        if let namedType = type as? GraphQLNamedType {
-            let typeName = namedType.name
-            let swiftType = mapScalarType(typeName)
-            // By default, GraphQL fields are nullable, so add optional marker
-            return "\(swiftType)?"
-        }
-
-        throw GeneratorError.unsupportedType("Unknown type: \(type)")
-    }
-
-    /// Map GraphQL scalar types to Swift types
-    private func mapScalarType(_ graphQLType: String) -> String {
-        switch graphQLType {
-        case "ID": return "String"
-        case "String": return "String"
-        case "Int": return "Int"
-        case "Float": return "Double"
-        case "Boolean": return "Bool"
-        default:
-            // For custom types (enums, objects), use safe name generator
-            return nameGenerator.swiftTypeName(for: graphQLType)
-        }
     }
 }
 
