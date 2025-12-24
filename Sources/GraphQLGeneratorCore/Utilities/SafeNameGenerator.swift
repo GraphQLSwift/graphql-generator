@@ -25,38 +25,6 @@ public protocol SafeNameGenerator {
     /// - Parameter documentedName: The input unsanitized string from the OpenAPI document.
     /// - Returns: The sanitized string.
     func swiftMemberName(for documentedName: String) -> String
-
-    /// Returns a string sanitized to be usable as a Swift identifier for the provided content type.
-    /// - Parameter contentType: The content type for which to compute a Swift identifier.
-    /// - Returns: A Swift identifier for the provided content type.
-    func swiftContentTypeName(for contentType: ContentType) -> String
-}
-
-extension SafeNameGenerator {
-
-    /// Returns a Swift identifier override for the provided content type.
-    /// - Parameter contentType: A content type.
-    /// - Returns: A Swift identifer for the content type, or nil if the provided content type doesn't
-    ///   have an override.
-    func swiftNameOverride(for contentType: ContentType) -> String? {
-        let rawContentType = contentType.lowercasedTypeSubtypeAndParameters
-        switch rawContentType {
-        case "application/json": return "json"
-        case "application/x-www-form-urlencoded": return "urlEncodedForm"
-        case "multipart/form-data": return "multipartForm"
-        case "text/plain": return "plainText"
-        case "*/*": return "any"
-        case "application/xml": return "xml"
-        case "application/octet-stream": return "binary"
-        case "text/html": return "html"
-        case "application/yaml": return "yaml"
-        case "text/csv": return "csv"
-        case "image/png": return "png"
-        case "application/pdf": return "pdf"
-        case "image/jpeg": return "jpeg"
-        default: return nil
-        }
-    }
 }
 
 /// Returns a string sanitized to be usable as a Swift identifier.
@@ -113,23 +81,6 @@ public struct DefensiveSafeNameGenerator: SafeNameGenerator {
 
         guard Self.keywords.contains(validString) else { return validString }
         return "_\(validString)"
-    }
-
-    public func swiftContentTypeName(for contentType: ContentType) -> String {
-        if let common = swiftNameOverride(for: contentType) { return common }
-        let safedType = swiftName(for: contentType.originallyCasedType)
-        let safedSubtype = swiftName(for: contentType.originallyCasedSubtype)
-        let componentSeparator = "_"
-        let prefix = "\(safedType)\(componentSeparator)\(safedSubtype)"
-        let params = contentType.lowercasedParameterPairs
-        guard !params.isEmpty else { return prefix }
-        let safedParams =
-            params.map { pair in
-                pair.split(separator: "=").map { component in swiftName(for: String(component)) }
-                    .joined(separator: componentSeparator)
-            }
-            .joined(separator: componentSeparator)
-        return prefix + componentSeparator + safedParams
     }
 
     /// A list of Swift keywords.
@@ -335,27 +286,6 @@ public struct IdiomaticSafeNameGenerator: SafeNameGenerator {
             defensiveFallback = defensive.swiftMemberName
         }
         return defensiveFallback(String(buffer))
-    }
-
-    public func swiftContentTypeName(for contentType: ContentType) -> String {
-        if let common = swiftNameOverride(for: contentType) { return common }
-        let safedType = swiftMemberName(for: contentType.originallyCasedType)
-        let safedSubtype = swiftMemberName(for: contentType.originallyCasedSubtype)
-        let prettifiedSubtype = safedSubtype.uppercasingFirstLetter
-        let prefix = "\(safedType)\(prettifiedSubtype)"
-        let params = contentType.lowercasedParameterPairs
-        guard !params.isEmpty else { return prefix }
-        let safedParams =
-            params.map { pair in
-                pair.split(separator: "=")
-                    .map { component in
-                        let safedComponent = swiftMemberName(for: String(component))
-                        return safedComponent.uppercasingFirstLetter
-                    }
-                    .joined()
-            }
-            .joined()
-        return prefix + safedParams
     }
 
     /// A list of word separator characters for the idiomatic naming strategy.
