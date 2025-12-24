@@ -19,7 +19,7 @@ public struct ResolverGenerator {
         import GraphQLGeneratorRuntime
 
         /// Protocol defining all resolver methods for your GraphQL schema
-        public protocol GraphQLResolvers {
+        public protocol GraphQLResolvers: Sendable {
 
         """
 
