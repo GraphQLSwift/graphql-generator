@@ -61,7 +61,7 @@ package struct TypeGenerator {
 
         // Use safe name generator for type name
         let safeTypeName = nameGenerator.swiftTypeName(for: type.name)
-        output += "public struct \(safeTypeName): Codable {\n"
+        output += "public struct \(safeTypeName): Codable, Sendable {\n"
 
         // Generate properties
         let fields = try type.fields()
@@ -91,7 +91,7 @@ package struct TypeGenerator {
 
         // Use safe name generator for enum name
         let safeEnumName = nameGenerator.swiftTypeName(for: type.name)
-        output += "public enum \(safeEnumName): String, Codable {\n"
+        output += "public enum \(safeEnumName): String, Codable, Sendable {\n"
 
         // Generate cases
         for value in type.values {

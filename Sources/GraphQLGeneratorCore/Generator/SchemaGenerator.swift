@@ -424,8 +424,7 @@ package struct SchemaGenerator {
         }
 
         output += """
-                                let result = try await \(resolvers).\(resolverMethodName)(\(argsList.joined(separator: ", ")))
-                                return result as (any Sendable)?
+                                return try await \(resolvers).\(resolverMethodName)(\(argsList.joined(separator: ", ")))
                             }
 
         """
