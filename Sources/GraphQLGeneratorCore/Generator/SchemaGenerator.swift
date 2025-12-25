@@ -394,7 +394,7 @@ package struct SchemaGenerator {
 
         var output = """
 
-        resolve: { source, args, context, _ in
+        resolve: { source, args, context, info in
         """
 
         // Build argument list
@@ -436,6 +436,9 @@ package struct SchemaGenerator {
             }
         """
         argsList.append("context: context")
+
+        // Add resolver info
+        argsList.append("info: info")
 
         // Call the resolver
         let resolverMethodName: String

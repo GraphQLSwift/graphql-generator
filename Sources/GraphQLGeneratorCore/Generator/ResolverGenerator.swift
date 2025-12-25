@@ -80,6 +80,9 @@ package struct ResolverGenerator {
             // Add context parameter
             params.append("context: ResolverContext")
 
+            // Add resolve info parameter
+            params.append("info: GraphQLResolveInfo")
+
             let paramString = params.joined(separator: ", ")
 
             output += "    func \(fieldName)(\(paramString)) async throws -> \(returnType)\n\n"
@@ -122,6 +125,9 @@ package struct ResolverGenerator {
 
             // Add context parameter
             params.append("context: ResolverContext")
+
+            // Add resolve info parameter
+            params.append("info: GraphQLResolveInfo")
 
             let paramString = params.joined(separator: ", ")
 
