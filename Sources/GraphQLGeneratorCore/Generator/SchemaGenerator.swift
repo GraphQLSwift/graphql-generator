@@ -380,7 +380,9 @@ package struct SchemaGenerator {
             output += """
 
                 guard let parent = source as? \(safeParentTypeName) else {
-                    throw GraphQLError(message: "Invalid source type for \(parentTypeName).\(fieldName)")
+                    throw GraphQLError(
+                        message: "Expected source type \(safeParentTypeName) but got \\(type(of: source))"
+                    )
                 }
             """
             argsList.append("parent: parent")
@@ -390,32 +392,24 @@ package struct SchemaGenerator {
         for (argName, arg) in field.args {
             let safeArgName = nameGenerator.swiftMemberName(for: argName)
             let swiftType = try swiftTypeName(for: arg.type, nameGenerator: nameGenerator)
-            let conversionCode = try mapConversionCode(for: arg.type, valueName: "value", swiftType: swiftType)
-            let isOptional = !(arg.type is GraphQLNonNull)
-
             // Extract value from Map based on type
-            if isOptional {
-                output += """
+            output += """
 
-                    let \(safeArgName): \(swiftType) = args["\(argName)"].map { try! \(conversionCode) }
-                """
-            } else {
-                output += """
-
-                    let \(safeArgName): \(swiftType)
-                    if let value = args["\(argName)"] {
-                        \(safeArgName) = try \(conversionCode)
-                    } else {
-                        throw GraphQLError(message: "Required argument '\(argName)' is missing")
-                    }
-                """
-            }
-
+                let \(safeArgName) = try MapDecoder().decode(\(swiftType).self, from: args["\(argName)"])
+            """
             argsList.append("\(safeArgName): \(safeArgName)")
         }
 
         // Add context
-        argsList.append("context: context as! ResolverContext")
+        output += """
+
+            guard let context = context as? ResolverContext else {
+                throw GraphQLError(
+                        message: "Expected context type ResolverContext but got \\(type(of: context))"
+                )
+            }
+        """
+        argsList.append("context: context")
 
         // Call the resolver
         let resolverMethodName: String
