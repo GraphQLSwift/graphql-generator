@@ -40,17 +40,30 @@ package struct SchemaGenerator {
             output += "\n"
         }
 
+        // Generate type definitions for all object types
+        let interfaceTypes = typeMap.values.compactMap {
+            $0 as? GraphQLInterfaceType
+        }.filter {
+            // Skip introspection types and root operation types
+            !$0.name.hasPrefix("__")
+        }
+
+        for interfaceType in interfaceTypes {
+            output += try generateInterfaceTypeDefinition(for: interfaceType, resolvers: "resolvers").indent(1)
+            output += "\n"
+        }
+
         // TODO: Input Objects
 
         // Generate type definitions for all object types
         let objectTypes = typeMap.values.compactMap {
             $0 as? GraphQLObjectType
-        }.filter { objectType in
+        }.filter {
             // Skip introspection types and root operation types
-            !objectType.name.hasPrefix("__") &&
-            objectType.name != "Query" &&
-            objectType.name != "Mutation" &&
-            objectType.name != "Subscription"
+            !$0.name.hasPrefix("__") &&
+            $0.name != "Query" &&
+            $0.name != "Mutation" &&
+            $0.name != "Subscription"
         }
 
         // Generate GraphQLObjectType definitions for non-root types
@@ -60,6 +73,10 @@ package struct SchemaGenerator {
         }
 
         // Generate GraphQLObjectType field definitions for non-root types
+        for interfaceType in interfaceTypes {
+            output += try generateInterfaceTypeFieldDefinition(for: interfaceType, resolvers: "resolvers").indent(1)
+            output += "\n"
+        }
         for objectType in objectTypes {
             output += try generateObjectTypeFieldDefinition(for: objectType, resolvers: "resolvers").indent(1)
             output += "\n"
@@ -161,6 +178,67 @@ package struct SchemaGenerator {
 
         return output
     }
+
+    private func generateInterfaceTypeDefinition(for type: GraphQLInterfaceType, resolvers: String) throws -> String {
+        let varName = nameGenerator.swiftMemberName(for: type.name) + "Interface"
+
+        var output = """
+        let \(varName) = try GraphQLInterfaceType(
+            name: "\(type.name)",
+        """
+
+        if let description = type.description {
+            output += """
+
+                description: \"\"\"
+                \(description)
+                \"\"\",
+            """
+        }
+
+        // Delay field & interface generation to support recursive type systems
+
+        output += """
+
+        )
+        """
+
+        return output
+    }
+
+    private func generateInterfaceTypeFieldDefinition(for type: GraphQLInterfaceType, resolvers: String) throws -> String {
+        let varName = nameGenerator.swiftMemberName(for: type.name) + "Interface"
+
+        var output = """
+        \(varName).fields = {
+            [
+        """
+
+        // Generate fields
+        let fields = try type.fields()
+        for (fieldName, field) in fields {
+            // For non-root types, only generate resolver callbacks for fields that return object types
+            let needsResolver = isObjectType(field.type)
+
+            output += try generateFieldDefinition(
+                fieldName: fieldName,
+                field: field,
+                parentTypeName: type.name,
+                resolvers: resolvers,
+                isRootType: false,
+                needsResolver: needsResolver
+            ).indent(2)
+        }
+
+        output += """
+
+            ]
+        }
+        """
+
+        return output
+    }
+
 
     private func generateObjectTypeDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name) + "Type"
@@ -524,7 +602,7 @@ package struct SchemaGenerator {
         throw GeneratorError.unsupportedType("Unknown type: \(type)")
     }
 
-    /// Check if a GraphQL type is an object type (not a scalar, enum, etc.)
+    /// Check if a GraphQL type is a composite object type (not a scalar, enum, etc.)
     private func isObjectType(_ type: GraphQLType) -> Bool {
         // Unwrap NonNull and List
         if let nonNull = type as? GraphQLNonNull {
@@ -541,8 +619,8 @@ package struct SchemaGenerator {
             if ["ID", "String", "Int", "Float", "Boolean"].contains(typeName) {
                 return false
             }
-            // Check if it's an object type (not an enum or scalar)
-            return namedType is GraphQLObjectType
+            // Check if it's a composite type (not an enum or scalar)
+            return namedType is GraphQLCompositeType
         }
 
         return false
