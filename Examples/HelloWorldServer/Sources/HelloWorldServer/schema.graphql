@@ -21,6 +21,11 @@ type User {
   The user's age
   """
   age: Int
+
+  """
+  The user's age
+  """
+  role: Role
 }
 
 """

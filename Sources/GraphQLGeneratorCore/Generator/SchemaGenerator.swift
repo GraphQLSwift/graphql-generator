@@ -24,23 +24,9 @@ package struct SchemaGenerator {
 
         """
 
-        // Generate type definitions for all object types
         let typeMap = schema.typeMap
-        let objectTypes = typeMap.values.compactMap { $0 as? GraphQLObjectType }
 
-        // Generate GraphQLObjectType definitions for non-root types
-        for objectType in objectTypes {
-            // Skip introspection types and root operation types
-            if objectType.name.hasPrefix("__") ||
-               objectType.name == "Query" ||
-               objectType.name == "Mutation" ||
-               objectType.name == "Subscription" {
-                continue
-            }
-
-            output += try generateObjectTypeDefinition(for: objectType, resolvers: "resolvers").indent(1)
-            output += "\n"
-        }
+        // TODO: Scalars
 
         // Generate enum type definitions
         let enumTypes = typeMap.values.compactMap { $0 as? GraphQLEnumType }
@@ -51,6 +37,31 @@ package struct SchemaGenerator {
             }
 
             output += try generateEnumTypeDefinition(for: enumType).indent(1)
+            output += "\n"
+        }
+
+        // TODO: Input Objects
+
+        // Generate type definitions for all object types
+        let objectTypes = typeMap.values.compactMap {
+            $0 as? GraphQLObjectType
+        }.filter { objectType in
+            // Skip introspection types and root operation types
+            !objectType.name.hasPrefix("__") &&
+            objectType.name != "Query" &&
+            objectType.name != "Mutation" &&
+            objectType.name != "Subscription"
+        }
+
+        // Generate GraphQLObjectType definitions for non-root types
+        for objectType in objectTypes {
+            output += try generateObjectTypeDefinition(for: objectType, resolvers: "resolvers").indent(1)
+            output += "\n"
+        }
+
+        // Generate GraphQLObjectType field definitions for non-root types
+        for objectType in objectTypes {
+            output += try generateObjectTypeFieldDefinition(for: objectType, resolvers: "resolvers").indent(1)
             output += "\n"
         }
 
@@ -65,6 +76,8 @@ package struct SchemaGenerator {
             output += try generateMutationTypeDefinition(for: mutationType, resolvers: "resolvers").indent(1)
             output += "\n"
         }
+
+        // TODO: Subscription
 
         // Build and return the schema
         output += """
@@ -84,53 +97,6 @@ package struct SchemaGenerator {
             )
         }
 
-        """
-
-        return output
-    }
-
-    private func generateObjectTypeDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name) + "Type"
-
-        var output = """
-        let \(varName) = try GraphQLObjectType(
-            name: "\(type.name)",
-        """
-
-        if let description = type.description {
-            output += """
-
-                description: \"\"\"
-                \(description)
-                \"\"\",
-            """
-        }
-
-        output += """
-
-            fields: [
-        """
-
-        // Generate fields
-        let fields = try type.fields()
-        for (fieldName, field) in fields {
-            // For non-root types, only generate resolver callbacks for fields that return object types
-            let needsResolver = isObjectType(field.type)
-
-            output += try generateFieldDefinition(
-                fieldName: fieldName,
-                field: field,
-                parentTypeName: type.name,
-                resolvers: resolvers,
-                isRootType: false,
-                needsResolver: needsResolver
-            ).indent(2)
-        }
-
-        output += """
-
-            ]
-        )
         """
 
         return output
@@ -177,7 +143,7 @@ package struct SchemaGenerator {
             } else {
                 output += """
 
-                            value: Map.string("\(value.name)")
+                            value: .string("\(value.name)")
                 """
             }
 
@@ -191,6 +157,66 @@ package struct SchemaGenerator {
 
             ]
         )
+        """
+
+        return output
+    }
+
+    private func generateObjectTypeDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
+        let varName = nameGenerator.swiftMemberName(for: type.name) + "Type"
+
+        var output = """
+        let \(varName) = try GraphQLObjectType(
+            name: "\(type.name)",
+        """
+
+        if let description = type.description {
+            output += """
+
+                description: \"\"\"
+                \(description)
+                \"\"\",
+            """
+        }
+
+        // Delay field generation to support recursive type systems
+
+        output += """
+
+        )
+        """
+
+        return output
+    }
+
+    private func generateObjectTypeFieldDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
+        let varName = nameGenerator.swiftMemberName(for: type.name) + "Type"
+
+        var output = """
+        \(varName).fields = {
+            [
+        """
+
+        // Generate fields
+        let fields = try type.fields()
+        for (fieldName, field) in fields {
+            // For non-root types, only generate resolver callbacks for fields that return object types
+            let needsResolver = isObjectType(field.type)
+
+            output += try generateFieldDefinition(
+                fieldName: fieldName,
+                field: field,
+                parentTypeName: type.name,
+                resolvers: resolvers,
+                isRootType: false,
+                needsResolver: needsResolver
+            ).indent(2)
+        }
+
+        output += """
+
+            ]
+        }
         """
 
         return output
