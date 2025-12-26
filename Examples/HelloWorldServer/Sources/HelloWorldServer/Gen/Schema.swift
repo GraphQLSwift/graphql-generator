@@ -24,11 +24,17 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
             ),
         ]
     )
+    let hasEmailInterface = try GraphQLInterfaceType(
+        name: "HasEmail"
+    )
     let userType = try GraphQLObjectType(
         name: "User",
         description: """
         A simple user type
         """,
+    )
+    let contactType = try GraphQLObjectType(
+        name: "Contact",
     )
     let postType = try GraphQLObjectType(
         name: "Post",
@@ -36,6 +42,16 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
         A blog post
         """,
     )
+    hasEmailInterface.fields = {
+        [
+            "email": GraphQLField(
+                type: GraphQLNonNull(GraphQLString),
+                description: """
+                The user's email address
+                """,
+            ),
+        ]
+    }
     userType.fields = {
         [
             "id": GraphQLField(
@@ -69,6 +85,22 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 """,
             ),
         ]
+    }
+    userType.interfaces = {
+        [hasEmailInterface]
+    }
+    contactType.fields = {
+        [
+            "email": GraphQLField(
+                type: GraphQLNonNull(GraphQLString),
+                description: """
+                The user's email address
+                """,
+            ),
+        ]
+    }
+    contactType.interfaces = {
+        [hasEmailInterface]
     }
     postType.fields = {
         [

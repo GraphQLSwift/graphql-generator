@@ -17,15 +17,20 @@ public enum Role: String, Codable, Sendable {
 
 // TODO: InputObjects
 
-// TODO: Interfaces
-
 // TODO: Union
+
+public protocol HasEmailInterface: Sendable {
+    associatedtype TypeMap: TypeMapProtocol
+
+    /// An email address
+    func email(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+}
 
 // Object Types
 
 /// A simple user type
-public protocol UserProtocol: Sendable {
-    associatedtype TypeMap: TypeMapProtocol
+public protocol UserProtocol: HasEmailInterface, Sendable {
+    // No type map associatedType needed because of HasEmailInterface inheritance
 
     /// The unique identifier for the user
     func id(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
@@ -37,6 +42,12 @@ public protocol UserProtocol: Sendable {
     func age(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> Int?
     /// The user's age
     func role(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> Role?
+}
+
+public protocol ContactProtocol: HasEmailInterface, Sendable {
+    // No type map associatedType needed because of HasEmailInterface inheritance
+
+    func email(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
 }
 
 /// A blog post

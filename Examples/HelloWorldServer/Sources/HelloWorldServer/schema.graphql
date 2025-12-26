@@ -1,7 +1,14 @@
+interface HasEmail {
+  """
+  An email address
+  """
+  email: String!
+}
+
 """
 A simple user type
 """
-type User {
+type User implements HasEmail {
   """
   The unique identifier for the user
   """
@@ -26,6 +33,10 @@ type User {
   The user's age
   """
   role: Role
+}
+
+type Contact implements HasEmail {
+  email: String!
 }
 
 """

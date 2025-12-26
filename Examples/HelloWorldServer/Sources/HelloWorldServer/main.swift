@@ -9,6 +9,7 @@ struct Context {
 struct TypeMap: TypeMapProtocol {
     typealias Context = HelloWorldServer.Context
     typealias User = HelloWorldServer.User
+    typealias Contact = HelloWorldServer.Contact
     typealias Post = HelloWorldServer.Post
 }
 struct User: UserProtocol {
@@ -35,6 +36,16 @@ struct User: UserProtocol {
     }
     func role(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
         return role
+    }
+}
+struct Contact: ContactProtocol {
+    // User can choose structure
+    let email: String
+
+    // Required implementations
+    typealias TypeMap = HelloWorldServer.TypeMap
+    func email(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+        return email
     }
 }
 struct Post: PostProtocol {
