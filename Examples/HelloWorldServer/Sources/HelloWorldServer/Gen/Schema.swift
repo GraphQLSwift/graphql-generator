@@ -96,8 +96,8 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 The author of the post
                 """,
                 resolve: { source, args, context, info in
-                    let parent = try resolvers.cast(source, to: T.Post.self)
-                    let context = try resolvers.cast(context, to: T.Context.self)
+                    let parent = try resolvers.cast(source, to: T.TypeMap.Post.self)
+                    let context = try resolvers.cast(context, to: T.TypeMap.Context.self)
                     return try await parent.author(context: context, info: info)
                 }
             ),
@@ -122,7 +122,7 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 ],
                 resolve: { source, args, context, info in
                     let id = try MapDecoder().decode(String.self, from: args["id"])
-                    let context = try resolvers.cast(context, to: T.Context.self)
+                    let context = try resolvers.cast(context, to: T.TypeMap.Context.self)
                     return try await resolvers.user(id: id, context: context, info: info)
                 }
             ),
@@ -132,7 +132,7 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 Get all users
                 """,
                 resolve: { source, args, context, info in
-                    let context = try resolvers.cast(context, to: T.Context.self)
+                    let context = try resolvers.cast(context, to: T.TypeMap.Context.self)
                     return try await resolvers.users(context: context, info: info)
                 }
             ),
@@ -148,7 +148,7 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 ],
                 resolve: { source, args, context, info in
                     let id = try MapDecoder().decode(String.self, from: args["id"])
-                    let context = try resolvers.cast(context, to: T.Context.self)
+                    let context = try resolvers.cast(context, to: T.TypeMap.Context.self)
                     return try await resolvers.post(id: id, context: context, info: info)
                 }
             ),
@@ -164,7 +164,7 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 ],
                 resolve: { source, args, context, info in
                     let limit = args["limit"] != .undefined ? try MapDecoder().decode(Int?.self, from: args["limit"]): nil
-                    let context = try resolvers.cast(context, to: T.Context.self)
+                    let context = try resolvers.cast(context, to: T.TypeMap.Context.self)
                     return try await resolvers.posts(limit: limit, context: context, info: info)
                 }
             ),

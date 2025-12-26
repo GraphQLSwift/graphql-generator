@@ -25,30 +25,30 @@ public enum Role: String, Codable, Sendable {
 
 /// A simple user type
 public protocol UserProtocol: Sendable {
-    associatedtype Context
+    associatedtype TypeMap: TypeMapProtocol
 
     /// The unique identifier for the user
-    func id(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func id(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
     /// The user's display name
-    func name(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func name(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
     /// The user's email address
-    func email(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func email(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
     /// The user's age
-    func age(context: Context, info: GraphQLResolveInfo) async throws -> Int?
+    func age(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> Int?
     /// The user's age
-    func role(context: Context, info: GraphQLResolveInfo) async throws -> Role?
+    func role(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> Role?
 }
 
 /// A blog post
 public protocol PostProtocol: Sendable {
-    associatedtype Context
+    associatedtype TypeMap: TypeMapProtocol
 
     /// The unique identifier for the post
-    func id(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func id(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
     /// The post title
-    func title(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func title(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
     /// The post content
-    func content(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func content(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
     /// The author of the post
-    func author(context: Context, info: GraphQLResolveInfo) async throws -> any UserProtocol
+    func author(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User
 }

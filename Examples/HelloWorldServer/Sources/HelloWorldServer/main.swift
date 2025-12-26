@@ -6,6 +6,11 @@ struct Context {
     var users: [String: User]
     var posts: [String: Post]
 }
+struct TypeMap: TypeMapProtocol {
+    typealias Context = HelloWorldServer.Context
+    typealias User = HelloWorldServer.User
+    typealias Post = HelloWorldServer.Post
+}
 struct User: UserProtocol {
     // User can choose structure
     let id: String
@@ -15,20 +20,20 @@ struct User: UserProtocol {
     let role: Role?
 
     // Required implementations
-    typealias Context = HelloWorldServer.Context
-    func id(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    typealias TypeMap = HelloWorldServer.TypeMap
+    func id(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return id
     }
-    func name(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func name(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return name
     }
-    func email(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func email(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return email
     }
-    func age(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Int? {
+    func age(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Int? {
         return age
     }
-    func role(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
+    func role(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
         return role
     }
 }
@@ -40,18 +45,17 @@ struct Post: PostProtocol {
     let authorId: String
 
     // Required implementations
-    typealias Context = HelloWorldServer.Context
-    func id(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    typealias TypeMap = HelloWorldServer.TypeMap
+    func id(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return id
     }
-    func title(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func title(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return title
     }
-    func content(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func content(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return content
     }
-    // TODO: When referencing other types, we are implicitly casting to the Resolver typealias...
-    func author(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> any UserProtocol {
+    func author(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> TypeMap.User {
         return context.users[authorId]!
     }
 }
@@ -61,8 +65,7 @@ struct HelloWorldResolvers: GraphQLResolvers {
 
     // TypeMap
     typealias Context = HelloWorldServer.Context
-    typealias Post = HelloWorldServer.Post
-    typealias User = HelloWorldServer.User
+    typealias TypeMap = HelloWorldServer.TypeMap
 
     // Query
     func user(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> User? {
