@@ -42,6 +42,13 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
         A blog post
         """,
     )
+    let userOrPostUnion = try GraphQLUnionType(
+        name: "UserOrPost",
+        description: "Get a user or post by ID",
+        types: {
+            [userType, postType]
+        }
+    )
     hasEmailInterface.fields = {
         [
             "email": GraphQLField(
@@ -203,6 +210,14 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
         ]
     )
     return try GraphQLSchema(
-        query: queryType
+        query: queryType,
+        types: [
+            roleType,
+            hasEmailInterface,
+            userType,
+            contactType,
+            postType,
+            userOrPostUnion,
+        ]
     )
 }

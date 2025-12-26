@@ -5,6 +5,8 @@ interface HasEmail {
   email: String!
 }
 
+union UserOrPost = User | Post
+
 """
 A simple user type
 """
@@ -96,4 +98,9 @@ type Query {
   Get recent posts
   """
   posts(limit: Int = 10): [Post!]!
+
+  """
+  Get a user or post by ID
+  """
+  userOrPost(id: ID!): UserOrPost
 }

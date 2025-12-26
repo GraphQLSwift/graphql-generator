@@ -17,7 +17,7 @@ public enum Role: String, Codable, Sendable {
 
 // TODO: InputObjects
 
-// TODO: Union
+public protocol UserOrPostUnion {}
 
 public protocol HasEmailInterface: Sendable {
     associatedtype TypeMap: TypeMapProtocol
@@ -29,7 +29,7 @@ public protocol HasEmailInterface: Sendable {
 // Object Types
 
 /// A simple user type
-public protocol UserProtocol: HasEmailInterface, Sendable {
+public protocol UserProtocol: HasEmailInterface, UserOrPostUnion, Sendable {
     // No type map associatedType needed because of HasEmailInterface inheritance
 
     /// The unique identifier for the user
@@ -51,7 +51,7 @@ public protocol ContactProtocol: HasEmailInterface, Sendable {
 }
 
 /// A blog post
-public protocol PostProtocol: Sendable {
+public protocol PostProtocol: UserOrPostUnion, Sendable {
     associatedtype TypeMap: TypeMapProtocol
 
     /// The unique identifier for the post

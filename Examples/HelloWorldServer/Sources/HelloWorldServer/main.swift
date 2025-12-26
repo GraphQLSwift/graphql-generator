@@ -91,6 +91,9 @@ struct HelloWorldResolvers: GraphQLResolvers {
     func posts(limit: Int?, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [Post] {
         return .init(context.posts.values)
     }
+    func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
+        return context.users[id] ?? context.posts[id]
+    }
 }
 
 let resolvers = HelloWorldResolvers()

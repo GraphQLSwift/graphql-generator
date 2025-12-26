@@ -26,4 +26,7 @@ public protocol GraphQLResolvers: Sendable {
 
     /// Get recent posts
     func posts(limit: Int?, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> [TypeMap.Post]
+
+    /// Get a user or post by ID
+    func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)?
 }
