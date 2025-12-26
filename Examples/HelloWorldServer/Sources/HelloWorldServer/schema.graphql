@@ -7,6 +7,14 @@ interface HasEmail {
 
 union UserOrPost = User | Post
 
+input UserInfo {
+  id: ID!
+  name: name!
+  email: String!
+  age: Int
+  role: Role
+}
+
 """
 A simple user type
 """
@@ -103,4 +111,8 @@ type Query {
   Get a user or post by ID
   """
   userOrPost(id: ID!): UserOrPost
+}
+
+type Mutation {
+  upsertUser(userInfo: UserInfo!): User!
 }

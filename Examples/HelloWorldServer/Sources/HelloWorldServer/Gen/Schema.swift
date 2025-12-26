@@ -27,6 +27,7 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
     let hasEmailInterface = try GraphQLInterfaceType(
         name: "HasEmail"
     )
+    let userInfoInput = try GraphQLInputObjectType(name: "UserInfo")
     let userType = try GraphQLObjectType(
         name: "User",
         description: """
@@ -56,6 +57,25 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
                 description: """
                 The user's email address
                 """,
+            ),
+        ]
+    }
+    userInfoInput.fields = {
+        [
+            "id": InputObjectField(
+                type: GraphQLNonNull(GraphQLID),
+            ),
+            "name": InputObjectField(
+                type: GraphQLNonNull(GraphQLString),
+            ),
+            "email": InputObjectField(
+                type: GraphQLNonNull(GraphQLString),
+            ),
+            "age": InputObjectField(
+                type: GraphQLInt,
+            ),
+            "role": InputObjectField(
+                type: roleType,
             ),
         ]
     }
@@ -209,8 +229,30 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
             ),
         ]
     )
+    let mutationType = try GraphQLObjectType(
+        name: "Mutation",
+        description: """
+        Root mutation type
+        """,
+        fields: [
+            "upsertUser": GraphQLField(
+                type: userType,
+                args: [
+                    "userInfo": GraphQLArgument(
+                        type: GraphQLNonNull(userInfoInput)
+                    ),
+                ],
+                resolve: { source, args, context, info in
+                    let userInfoInput = try MapDecoder().decode(UserInfoInput.self, from: args["userInfo"])
+                    let context = try resolvers.cast(context, to: T.TypeMap.Context.self)
+                    return try await resolvers.upsertUser(userInfo: userInfoInput, context: context, info: info)
+                }
+            ),
+        ]
+    )
     return try GraphQLSchema(
         query: queryType,
+        mutation: mutationType,
         types: [
             roleType,
             hasEmailInterface,

@@ -15,8 +15,16 @@ public enum Role: String, Codable, Sendable {
 
 // TODO: Directives
 
-// TODO: InputObjects
+// Input objects are just codable structs
+public struct UserInfoInput: Codable, Sendable {
+    let id: String
+    let name: String
+    let email: String
+    let age: Int?
+    let role: Role?
+}
 
+// Unions are represented by a marker protocol, with associated types conforming
 public protocol UserOrPostUnion {}
 
 public protocol HasEmailInterface: Sendable {

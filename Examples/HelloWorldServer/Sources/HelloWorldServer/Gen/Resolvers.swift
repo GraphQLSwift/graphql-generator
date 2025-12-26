@@ -29,4 +29,8 @@ public protocol GraphQLResolvers: Sendable {
 
     /// Get a user or post by ID
     func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)?
+
+    // MARK: - Mutation Resolvers
+
+    func upsertUser(userInfo: UserInfoInput, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User
 }
