@@ -24,6 +24,19 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
             ),
         ]
     )
+
+    let datetimeScalar = try GraphQLScalarType(
+        name: "DateTime",
+        serialize: { any in
+            try T.TypeMap.DateTime.serialize(any: any)
+        },
+        parseValue: { map in
+            try T.TypeMap.DateTime.parseValue(map: map)
+        },
+        parseLiteral: { value in
+            try T.TypeMap.DateTime.parseLiteral(value: value)
+        }
+    )
     let hasEmailInterface = try GraphQLInterfaceType(
         name: "HasEmail"
     )
@@ -255,6 +268,7 @@ public func buildGraphQLSchema<T: GraphQLResolvers>(resolvers: T) throws -> Grap
         mutation: mutationType,
         types: [
             roleType,
+            datetimeScalar,
             hasEmailInterface,
             userType,
             contactType,

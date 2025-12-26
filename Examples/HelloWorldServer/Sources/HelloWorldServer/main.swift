@@ -16,10 +16,12 @@ class Context: @unchecked Sendable {
 }
 struct TypeMap: TypeMapProtocol {
     typealias Context = HelloWorldServer.Context
+    typealias DateTime = HelloWorldServer.DateTime
     typealias User = HelloWorldServer.User
     typealias Contact = HelloWorldServer.Contact
     typealias Post = HelloWorldServer.Post
 }
+struct DateTime: Scalar { }
 struct User: UserProtocol {
     // User can choose structure
     let id: String
