@@ -52,8 +52,8 @@ struct GraphQLGeneratorCommand: ParsableCommand {
         }
 
         // Generate code
-        let generator = CodeGenerator(schema: schema)
-        let generatedFiles = try generator.generate()
+        let generator = CodeGenerator()
+        let generatedFiles = try generator.generate(schema: schema)
 
         // Write generated files
         for (filename, content) in generatedFiles {
