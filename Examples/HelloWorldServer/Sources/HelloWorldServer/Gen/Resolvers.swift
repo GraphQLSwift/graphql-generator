@@ -2,12 +2,12 @@
 import Foundation
 import GraphQL
 
-public protocol TypeMapProtocol {
+public protocol ResolversProtocol {
     associatedtype Context: Sendable
     associatedtype DateTime: Scalar
-    associatedtype User: UserProtocol where User.TypeMap == Self
-    associatedtype Contact: ContactProtocol where Contact.TypeMap == Self
-    associatedtype Post: PostProtocol where Post.TypeMap == Self
-    associatedtype Query: QueryProtocol where Query.TypeMap == Self
-    associatedtype Mutation: MutationProtocol where Mutation.TypeMap == Self
+    associatedtype User: UserProtocol where User.Resolvers == Self
+    associatedtype Contact: ContactProtocol where Contact.Resolvers == Self
+    associatedtype Post: PostProtocol where Post.Resolvers == Self
+    associatedtype Query: QueryProtocol where Query.Resolvers == Self
+    associatedtype Mutation: MutationProtocol where Mutation.Resolvers == Self
 }

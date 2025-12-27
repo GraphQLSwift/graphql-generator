@@ -28,10 +28,10 @@ public struct UserInfoInput: Codable, Sendable {
 public protocol UserOrPostUnion {}
 
 public protocol HasEmailInterface: Sendable {
-    associatedtype TypeMap: TypeMapProtocol
+    associatedtype Resolvers: ResolversProtocol
 
     /// An email address
-    func email(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func email(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
 }
 
 // Object Types
@@ -41,58 +41,58 @@ public protocol UserProtocol: HasEmailInterface, UserOrPostUnion, Sendable {
     // No type map associatedType needed because of HasEmailInterface inheritance
 
     /// The unique identifier for the user
-    func id(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func id(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
     /// The user's display name
-    func name(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func name(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
     /// The user's email address
-    func email(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func email(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
     /// The user's age
-    func age(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> Int?
+    func age(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> Int?
     /// The user's age
-    func role(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> Role?
+    func role(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> Role?
 }
 
 public protocol ContactProtocol: HasEmailInterface, Sendable {
     // No type map associatedType needed because of HasEmailInterface inheritance
 
-    func email(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func email(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
 }
 
 /// A blog post
 public protocol PostProtocol: UserOrPostUnion, Sendable {
-    associatedtype TypeMap: TypeMapProtocol
+    associatedtype Resolvers: ResolversProtocol
 
     /// The unique identifier for the post
-    func id(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func id(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
     /// The post title
-    func title(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func title(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
     /// The post content
-    func content(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> String
+    func content(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> String
     /// The author of the post
-    func author(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User
+    func author(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> Resolvers.User
 }
 
 public protocol QueryProtocol: Sendable {
-    associatedtype TypeMap: TypeMapProtocol
+    associatedtype Resolvers: ResolversProtocol
 
     /// Get a user by ID
-    static func user(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User?
+    static func user(id: String, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> Resolvers.User?
 
     /// Get all users
-    static func users(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> [TypeMap.User]
+    static func users(context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> [Resolvers.User]
 
     /// Get a post by ID
-    static func post(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.Post?
+    static func post(id: String, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> Resolvers.Post?
 
     /// Get recent posts
-    static func posts(limit: Int?, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> [TypeMap.Post]
+    static func posts(limit: Int?, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> [Resolvers.Post]
 
     /// Get a user or post by ID
-    static func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)?
+    static func userOrPost(id: String, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)?
 }
 
 public protocol MutationProtocol: Sendable {
-    associatedtype TypeMap: TypeMapProtocol
+    associatedtype Resolvers: ResolversProtocol
 
-    static func upsertUser(userInfo: UserInfoInput, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User
+    static func upsertUser(userInfo: UserInfoInput, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> Resolvers.User
 }

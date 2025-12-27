@@ -14,7 +14,7 @@ class Context: @unchecked Sendable {
         self.posts = posts
     }
 }
-struct TypeMap: TypeMapProtocol {
+struct Resolvers: ResolversProtocol {
     typealias Context = HelloWorldServer.Context
     typealias DateTime = HelloWorldServer.DateTime
     typealias User = HelloWorldServer.User
@@ -33,20 +33,20 @@ struct User: UserProtocol {
     let role: Role?
 
     // Required implementations
-    typealias TypeMap = HelloWorldServer.TypeMap
-    func id(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    typealias Resolvers = HelloWorldServer.Resolvers
+    func id(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return id
     }
-    func name(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func name(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return name
     }
-    func email(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func email(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return email
     }
-    func age(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Int? {
+    func age(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Int? {
         return age
     }
-    func role(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
+    func role(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
         return role
     }
 }
@@ -55,8 +55,8 @@ struct Contact: ContactProtocol {
     let email: String
 
     // Required implementations
-    typealias TypeMap = HelloWorldServer.TypeMap
-    func email(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    typealias Resolvers = HelloWorldServer.Resolvers
+    func email(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return email
     }
 }
@@ -68,24 +68,24 @@ struct Post: PostProtocol {
     let authorId: String
 
     // Required implementations
-    typealias TypeMap = HelloWorldServer.TypeMap
-    func id(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    typealias Resolvers = HelloWorldServer.Resolvers
+    func id(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return id
     }
-    func title(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func title(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return title
     }
-    func content(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func content(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return content
     }
-    func author(context: TypeMap.Context, info: GraphQL.GraphQLResolveInfo) async throws -> TypeMap.User {
+    func author(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Resolvers.User {
         return context.users[authorId]!
     }
 }
 
 struct Query: QueryProtocol {
     // Required implementations
-    typealias TypeMap = HelloWorldServer.TypeMap
+    typealias Resolvers = HelloWorldServer.Resolvers
     static func user(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> User? {
         return context.users[id]
     }
@@ -98,15 +98,15 @@ struct Query: QueryProtocol {
     static func posts(limit: Int?, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [Post] {
         return .init(context.posts.values)
     }
-    static func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
+    static func userOrPost(id: String, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
         return context.users[id] ?? context.posts[id]
     }
 }
 
 struct Mutation: MutationProtocol {
     // Required implementations
-    typealias TypeMap = HelloWorldServer.TypeMap
-    static func upsertUser(userInfo: UserInfoInput, context: TypeMap.Context, info: GraphQLResolveInfo) -> User {
+    typealias Resolvers = HelloWorldServer.Resolvers
+    static func upsertUser(userInfo: UserInfoInput, context: Resolvers.Context, info: GraphQLResolveInfo) -> User {
         let user = User(
             id: userInfo.id,
             name: userInfo.name,
@@ -119,7 +119,7 @@ struct Mutation: MutationProtocol {
     }
 }
 
-let schema = try buildGraphQLSchema(typeMap: TypeMap.self)
+let schema = try buildGraphQLSchema(Resolvers: Resolvers.self)
 
 let context = Context(
     users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],

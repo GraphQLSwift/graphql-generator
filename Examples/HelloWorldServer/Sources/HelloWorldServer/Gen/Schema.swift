@@ -5,7 +5,7 @@ import Foundation
 import GraphQL
 
 /// Build a GraphQL schema with the provided resolvers
-public func buildGraphQLSchema<T: TypeMapProtocol>(typeMap: T.Type) throws -> GraphQLSchema {
+public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -> GraphQLSchema {
 
     let roleType = try GraphQLEnumType(
         name: "Role",
