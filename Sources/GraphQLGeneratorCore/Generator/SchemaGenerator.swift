@@ -514,7 +514,7 @@ package struct SchemaGenerator {
         // Add field arguments
         for (argName, arg) in field.args {
             let safeArgName = nameGenerator.swiftMemberName(for: argName)
-            let swiftType = try swiftTypeName(for: arg.type, nameGenerator: nameGenerator)
+            let swiftType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
             // Extract value from Map based on type
             output += """
 
@@ -526,9 +526,9 @@ package struct SchemaGenerator {
         // Add context
         output += """
 
-            guard let context = context as? ResolverContext else {
+            guard let context = context as? Context else {
                 throw GraphQLError(
-                        message: "Expected context type ResolverContext but got \\(type(of: context))"
+                        message: "Expected context type Context but got \\(type(of: context))"
                 )
             }
         """
@@ -596,7 +596,7 @@ package struct SchemaGenerator {
 
         // For list types, map over the array
         if let list = type as? GraphQLList {
-            return "try \(valueName).arrayValue?.map { try \(try swiftTypeName(for: list.ofType, nameGenerator: nameGenerator))($0) }"
+            return "try \(valueName).arrayValue?.map { try \(try swiftTypeReference(for: list.ofType, nameGenerator: nameGenerator))($0) }"
         }
 
         // For named types, convert based on scalar type

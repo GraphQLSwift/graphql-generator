@@ -14,10 +14,6 @@ package struct CodeGenerator {
         let typeGenerator = TypeGenerator()
         files["Types.swift"] = try typeGenerator.generate(schema: schema)
 
-        // Generate Resolvers.swift
-        let resolverGenerator = ResolverGenerator()
-        files["Resolvers.swift"] = try resolverGenerator.generate(schema: schema)
-
         // Generate Schema.swift
         let schemaGenerator = SchemaGenerator()
         files["Schema.swift"] = try schemaGenerator.generate(schema: schema)

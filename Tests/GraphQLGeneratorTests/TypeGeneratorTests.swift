@@ -23,6 +23,7 @@ struct TypeGeneratorTests {
         )
         #expect(
             actual == """
+
             /// foo
             public enum Foo: String, Codable, Sendable {
                 /// foo
@@ -30,53 +31,139 @@ struct TypeGeneratorTests {
                 /// bar
                 case bar = "bar"
             }
+            """
+        )
+    }
 
+    @Test func interfaceType() async throws {
+        let interfaceA = try GraphQLInterfaceType(
+            name: "A",
+            description: "A"
+        )
+        let interfaceB = try GraphQLInterfaceType(
+            name: "B",
+            description: "B",
+            interfaces: [
+                interfaceA,
+            ],
+            fields: [
+                "foo": .init(
+                    type: GraphQLNonNull(GraphQLString),
+                    description: "foo"
+                ),
+                "baz": .init(
+                    type: GraphQLString,
+                    description: "baz"
+                )
+            ]
+        )
+        let actual = try TypeGenerator().generateInterfaceProtocol(for: interfaceB)
+        #expect(
+            actual == """
+
+            /// B
+            public protocol BInterface: AInterface, Sendable {
+                /// foo
+                public func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+
+                /// baz
+                public func baz(context: Context, info: GraphQLResolveInfo) async throws -> String?
+
+            }
             """
         )
     }
 
     @Test func objectType() async throws {
+        let interfaceA = try GraphQLInterfaceType(
+            name: "A",
+            description: "A"
+        )
+        let typeFoo = try GraphQLObjectType(
+            name: "Foo",
+            description: "Foo",
+            fields: [
+                "foo": .init(
+                    type: GraphQLNonNull(GraphQLString),
+                    description: "foo"
+                ),
+                "bar": .init(
+                    type: GraphQLString,
+                    description: "bar",
+                    args: [
+                        "foo": .init(
+                            type: GraphQLNonNull(GraphQLString),
+                            description: "foo",
+                        ),
+                        "bar": .init(
+                            type: GraphQLString,
+                            description: "bar",
+                            defaultValue: .string("bar"),
+                        ),
+                    ]
+                )
+            ],
+            interfaces: [interfaceA],
+        )
         let actual = try TypeGenerator().generateTypeProtocol(
-            for: .init(
-                name: "Foo",
-                description: "Foo",
-                fields: [
-                    "foo": .init(
-                        type: GraphQLNonNull(GraphQLString),
-                        description: "foo"
-                    ),
-                    "bar": .init(
-                        type: GraphQLString,
-                        description: "bar",
-                        args: [
-                            "foo": .init(
-                                type: GraphQLNonNull(GraphQLString),
-                                description: "foo",
-                            ),
-                            "bar": .init(
-                                type: GraphQLString,
-                                description: "bar",
-                                defaultValue: .string("bar"),
-                            ),
-                        ]
-                    )
-                ]
-            )
+            for: typeFoo,
+            unionTypeMap: [
+                "Foo": [GraphQLUnionType(name: "X", types: [typeFoo])]
+            ]
         )
         #expect(
             actual == """
+
             /// Foo
-            public protocol FooProtocol: Sendable {
+            public protocol FooProtocol: XUnion, AInterface, Sendable {
                 /// foo
-                public func foo(context: ResolverContext, info: GraphQLResolveInfo) async throws -> String
+                public func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
 
                 /// bar
-                public func bar(foo: String, bar: String?, context: ResolverContext, info: GraphQLResolveInfo) async throws -> String?
+                public func bar(foo: String, bar: String?, context: Context, info: GraphQLResolveInfo) async throws -> String?
 
             }
-
             """
         )
     }
 
+    @Test func rootType() async throws {
+        let bar = try GraphQLObjectType(
+            name: "Bar",
+            description: "bar",
+            fields: [
+                "foo": .init(
+                    type: GraphQLString,
+                    description: "foo",
+                ),
+            ]
+        )
+        let query = try GraphQLObjectType(
+            name: "Query",
+            fields: [
+                "foo": .init(
+                    type: GraphQLString,
+                    description: "foo",
+                ),
+                "bar": .init(
+                    type: bar,
+                    description: "bar",
+                )
+            ]
+        )
+        let actual = try TypeGenerator().generateRootTypeProtocol(for: query)
+        #expect(
+            actual == """
+
+            public protocol QueryProtocol: Sendable {
+                /// foo
+                static func foo(context: Context, info: GraphQLResolveInfo) async throws -> String?
+
+                /// bar
+                static func bar(context: Context, info: GraphQLResolveInfo) async throws -> (any BarProtocol)?
+
+            }
+            """
+        )
+    }
 }
