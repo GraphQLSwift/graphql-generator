@@ -5,7 +5,7 @@ import Foundation
 import GraphQL
 
 /// Build a GraphQL schema with the provided resolvers
-public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -> GraphQLSchema {
+public func buildGraphQLSchema<Resolvers: ResolversProtocol>(resolvers: Resolvers.Type) throws -> GraphQLSchema {
 
     let roleType = try GraphQLEnumType(
         name: "Role",
@@ -195,7 +195,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 resolve: { source, args, context, info in
                     let id = try MapDecoder().decode(String.self, from: args["id"])
                     let context = try cast(context, to: Context.self)
-                    return try await T.Query.user(id: id, context: context, info: info)
+                    return try await Resolvers.Query.user(id: id, context: context, info: info)
                 }
             ),
             "users": GraphQLField(
@@ -205,7 +205,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 """,
                 resolve: { source, args, context, info in
                     let context = try cast(context, to: Context.self)
-                    return try await T.Query.users(context: context, info: info)
+                    return try await Resolvers.Query.users(context: context, info: info)
                 }
             ),
             "post": GraphQLField(
@@ -221,7 +221,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 resolve: { source, args, context, info in
                     let id = try MapDecoder().decode(String.self, from: args["id"])
                     let context = try cast(context, to: Context.self)
-                    return try await T.Query.post(id: id, context: context, info: info)
+                    return try await Resolvers.Query.post(id: id, context: context, info: info)
                 }
             ),
             "posts": GraphQLField(
@@ -237,7 +237,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 resolve: { source, args, context, info in
                     let limit = args["limit"] != .undefined ? try MapDecoder().decode(Int?.self, from: args["limit"]): nil
                     let context = try cast(context, to: Context.self)
-                    return try await T.Query.posts(limit: limit, context: context, info: info)
+                    return try await Resolvers.Query.posts(limit: limit, context: context, info: info)
                 }
             ),
         ]
@@ -258,7 +258,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 resolve: { source, args, context, info in
                     let userInfoInput = try MapDecoder().decode(UserInfoInput.self, from: args["userInfo"])
                     let context = try cast(context, to: Context.self)
-                    return try await T.Mutation.upsertUser(userInfo: userInfoInput, context: context, info: info)
+                    return try await Resolvers.Mutation.upsertUser(userInfo: userInfoInput, context: context, info: info)
                 }
             ),
         ]

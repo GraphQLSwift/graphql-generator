@@ -16,8 +16,9 @@ public class Context: @unchecked Sendable {
     }
 }
 // Scalars must be represented by a Swift type of the same name, conforming to the Scalar protocol
-struct DateTime: Scalar { }
+struct DateTime: Scalar {}
 
+// Now create types that conform to the expected protocols
 struct Resolvers: ResolversProtocol {
     typealias Query = HelloWorldServer.Query
     typealias Mutation = HelloWorldServer.Mutation
@@ -112,7 +113,7 @@ struct Mutation: MutationProtocol {
     }
 }
 
-let schema = try buildGraphQLSchema(Resolvers: Resolvers.self)
+let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
 
 let context = Context(
     users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
