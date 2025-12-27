@@ -71,3 +71,28 @@ public protocol PostProtocol: UserOrPostUnion, Sendable {
     /// The author of the post
     func author(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User
 }
+
+public protocol QueryProtocol: Sendable {
+    associatedtype TypeMap: TypeMapProtocol
+
+    /// Get a user by ID
+    static func user(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User?
+
+    /// Get all users
+    static func users(context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> [TypeMap.User]
+
+    /// Get a post by ID
+    static func post(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.Post?
+
+    /// Get recent posts
+    static func posts(limit: Int?, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> [TypeMap.Post]
+
+    /// Get a user or post by ID
+    static func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)?
+}
+
+public protocol MutationProtocol: Sendable {
+    associatedtype TypeMap: TypeMapProtocol
+
+    static func upsertUser(userInfo: UserInfoInput, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> TypeMap.User
+}

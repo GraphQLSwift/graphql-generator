@@ -20,6 +20,8 @@ struct TypeMap: TypeMapProtocol {
     typealias User = HelloWorldServer.User
     typealias Contact = HelloWorldServer.Contact
     typealias Post = HelloWorldServer.Post
+    typealias Query = HelloWorldServer.Query
+    typealias Mutation = HelloWorldServer.Mutation
 }
 struct DateTime: Scalar { }
 struct User: UserProtocol {
@@ -81,30 +83,30 @@ struct Post: PostProtocol {
     }
 }
 
-struct HelloWorldResolvers: GraphQLResolvers {
+struct Query: QueryProtocol {
     // Required implementations
-
-    // TypeMap
-    typealias Context = HelloWorldServer.Context
     typealias TypeMap = HelloWorldServer.TypeMap
-
-    // Query
-    func user(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> User? {
+    static func user(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> User? {
         return context.users[id]
     }
-    func users(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [User] {
+    static func users(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [User] {
         return .init(context.users.values)
     }
-    func post(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Post? {
+    static func post(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Post? {
         return context.posts[id]
     }
-    func posts(limit: Int?, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [Post] {
+    static func posts(limit: Int?, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [Post] {
         return .init(context.posts.values)
     }
-    func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
+    static func userOrPost(id: String, context: TypeMap.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
         return context.users[id] ?? context.posts[id]
     }
-    func upsertUser(userInfo: UserInfoInput, context: TypeMap.Context, info: GraphQLResolveInfo) -> User {
+}
+
+struct Mutation: MutationProtocol {
+    // Required implementations
+    typealias TypeMap = HelloWorldServer.TypeMap
+    static func upsertUser(userInfo: UserInfoInput, context: TypeMap.Context, info: GraphQLResolveInfo) -> User {
         let user = User(
             id: userInfo.id,
             name: userInfo.name,
@@ -117,10 +119,9 @@ struct HelloWorldResolvers: GraphQLResolvers {
     }
 }
 
-let resolvers = HelloWorldResolvers()
-let schema = try buildGraphQLSchema(resolvers: resolvers)
+let schema = try buildGraphQLSchema(typeMap: TypeMap.self)
 
-let context = HelloWorldResolvers.Context(
+let context = Context(
     users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
     posts: ["1" : .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
 )
