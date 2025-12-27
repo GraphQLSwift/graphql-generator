@@ -4,6 +4,12 @@
 import Foundation
 import GraphQL
 
+// Resolvers
+public protocol ResolversProtocol {
+    associatedtype Query: QueryProtocol
+    associatedtype Mutation: MutationProtocol
+}
+
 // Enums
 
 /// User role enumeration
