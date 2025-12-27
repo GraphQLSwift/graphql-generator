@@ -5,7 +5,7 @@ extension String {
         return self.split(separator: "\n").map { line in
             var result = line
             if firstLine {
-                firstLine == false
+                firstLine = false
             }
             if !line.isEmpty {
                 if !firstLine || includeFirst {

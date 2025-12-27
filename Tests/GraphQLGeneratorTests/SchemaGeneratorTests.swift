@@ -43,26 +43,29 @@ struct SchemaGeneratorTests {
         import GraphQLGeneratorRuntime
 
         /// Build a GraphQL schema with the provided resolvers
-        public func buildGraphQLSchema(resolvers: GraphQLResolvers) throws -> GraphQLSchema {
-
-            let barType = try GraphQLObjectType(
+        public func buildGraphQLSchema<Resolvers: ResolversProtocol>(resolvers: Resolvers.Type) throws -> GraphQLSchema {
+            let bar = try GraphQLObjectType(
                 name: "Bar",
                 description: """
                 bar
                 """,
             )
-            barType.fields = {
+            bar.fields = {
                 [
                     "foo": GraphQLField(
                         type: GraphQLString,
                         description: """
                         foo
                         """,
+                        resolve: { source, args, context, info in
+                            let parent = try cast(source, to: ((any BarProtocol)?).self)
+                            let context = try cast(context, to: Context.self)
+                            return try await parent.foo(context: context, info: info)
+                        }
                     ),
                 ]
             }
-
-            let queryType = try GraphQLObjectType(
+            let query = try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "foo": GraphQLField(
@@ -71,32 +74,24 @@ struct SchemaGeneratorTests {
                         foo
                         """,
                         resolve: { source, args, context, info in
-                            guard let context = context as? ResolverContext else {
-                                throw GraphQLError(
-                                        message: "Expected context type ResolverContext but got \(type(of: context))"
-                                )
-                            }
-                            return try await resolvers.foo(context: context, info: info)
+                            let context = try cast(context, to: Context.self)
+                            return try await Resolvers.Query.foo(context: context, info: info)
                         }
                     ),
                     "bar": GraphQLField(
-                        type: barType,
+                        type: bar,
                         description: """
                         bar
                         """,
                         resolve: { source, args, context, info in
-                            guard let context = context as? ResolverContext else {
-                                throw GraphQLError(
-                                        message: "Expected context type ResolverContext but got \(type(of: context))"
-                                )
-                            }
-                            return try await resolvers.bar(context: context, info: info)
+                            let context = try cast(context, to: Context.self)
+                            return try await Resolvers.Query.bar(context: context, info: info)
                         }
                     ),
                 ]
             )
             return try GraphQLSchema(
-                query: queryType
+                query: query
             )
         }
 
