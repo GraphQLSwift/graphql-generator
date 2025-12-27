@@ -1,7 +1,8 @@
 import Foundation
 import GraphQL
 
-class Context: @unchecked Sendable {
+// Must be created by user and named `Context`.
+public class Context: @unchecked Sendable {
     // User can choose structure
     var users: [String: User]
     var posts: [String: Post]
@@ -14,16 +15,13 @@ class Context: @unchecked Sendable {
         self.posts = posts
     }
 }
+// Scalars must be represented by a Swift type of the same name, conforming to the Scalar protocol
+struct DateTime: Scalar { }
+
 struct Resolvers: ResolversProtocol {
-    typealias Context = HelloWorldServer.Context
-    typealias DateTime = HelloWorldServer.DateTime
-    typealias User = HelloWorldServer.User
-    typealias Contact = HelloWorldServer.Contact
-    typealias Post = HelloWorldServer.Post
     typealias Query = HelloWorldServer.Query
     typealias Mutation = HelloWorldServer.Mutation
 }
-struct DateTime: Scalar { }
 struct User: UserProtocol {
     // User can choose structure
     let id: String
@@ -33,20 +31,19 @@ struct User: UserProtocol {
     let role: Role?
 
     // Required implementations
-    typealias Resolvers = HelloWorldServer.Resolvers
-    func id(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func id(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return id
     }
-    func name(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func name(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return name
     }
-    func email(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func email(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return email
     }
-    func age(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Int? {
+    func age(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Int? {
         return age
     }
-    func role(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
+    func role(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Role? {
         return role
     }
 }
@@ -55,8 +52,7 @@ struct Contact: ContactProtocol {
     let email: String
 
     // Required implementations
-    typealias Resolvers = HelloWorldServer.Resolvers
-    func email(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func email(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return email
     }
 }
@@ -68,45 +64,42 @@ struct Post: PostProtocol {
     let authorId: String
 
     // Required implementations
-    typealias Resolvers = HelloWorldServer.Resolvers
-    func id(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func id(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return id
     }
-    func title(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func title(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return title
     }
-    func content(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    func content(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
         return content
     }
-    func author(context: Resolvers.Context, info: GraphQL.GraphQLResolveInfo) async throws -> Resolvers.User {
+    func author(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> any UserProtocol {
         return context.users[authorId]!
     }
 }
 
 struct Query: QueryProtocol {
     // Required implementations
-    typealias Resolvers = HelloWorldServer.Resolvers
-    static func user(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> User? {
+    static func user(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> (any UserProtocol)? {
         return context.users[id]
     }
-    static func users(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [User] {
-        return .init(context.users.values)
+    static func users(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [any UserProtocol] {
+        return context.users.values.map { $0 as any UserProtocol }
     }
-    static func post(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> Post? {
+    static func post(id: String, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> (any PostProtocol)? {
         return context.posts[id]
     }
-    static func posts(limit: Int?, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [Post] {
-        return .init(context.posts.values)
+    static func posts(limit: Int?, context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> [any PostProtocol] {
+        return context.posts.values.map { $0 as any PostProtocol }
     }
-    static func userOrPost(id: String, context: Resolvers.Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
+    static func userOrPost(id: String, context: Context, info: GraphQLResolveInfo) async throws -> (any UserOrPostUnion)? {
         return context.users[id] ?? context.posts[id]
     }
 }
 
 struct Mutation: MutationProtocol {
     // Required implementations
-    typealias Resolvers = HelloWorldServer.Resolvers
-    static func upsertUser(userInfo: UserInfoInput, context: Resolvers.Context, info: GraphQLResolveInfo) -> User {
+    static func upsertUser(userInfo: UserInfoInput, context: Context, info: GraphQLResolveInfo) -> any UserProtocol {
         let user = User(
             id: userInfo.id,
             name: userInfo.name,

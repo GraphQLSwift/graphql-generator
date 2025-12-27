@@ -28,13 +28,13 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
     let datetimeScalar = try GraphQLScalarType(
         name: "DateTime",
         serialize: { any in
-            try T.DateTime.serialize(any: any)
+            try DateTime.serialize(any: any)
         },
         parseValue: { map in
-            try T.DateTime.parseValue(map: map)
+            try DateTime.parseValue(map: map)
         },
         parseLiteral: { value in
-            try T.DateTime.parseLiteral(value: value)
+            try DateTime.parseLiteral(value: value)
         }
     )
     let hasEmailInterface = try GraphQLInterfaceType(
@@ -168,8 +168,8 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 The author of the post
                 """,
                 resolve: { source, args, context, info in
-                    let parent = try cast(source, to: T.Post.self)
-                    let context = try cast(context, to: T.Context.self)
+                    let parent = try cast(source, to: (any PostProtocol).self)
+                    let context = try cast(context, to: Context.self)
                     return try await parent.author(context: context, info: info)
                 }
             ),
@@ -194,7 +194,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 ],
                 resolve: { source, args, context, info in
                     let id = try MapDecoder().decode(String.self, from: args["id"])
-                    let context = try cast(context, to: T.Context.self)
+                    let context = try cast(context, to: Context.self)
                     return try await T.Query.user(id: id, context: context, info: info)
                 }
             ),
@@ -204,7 +204,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 Get all users
                 """,
                 resolve: { source, args, context, info in
-                    let context = try cast(context, to: T.Context.self)
+                    let context = try cast(context, to: Context.self)
                     return try await T.Query.users(context: context, info: info)
                 }
             ),
@@ -220,7 +220,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 ],
                 resolve: { source, args, context, info in
                     let id = try MapDecoder().decode(String.self, from: args["id"])
-                    let context = try cast(context, to: T.Context.self)
+                    let context = try cast(context, to: Context.self)
                     return try await T.Query.post(id: id, context: context, info: info)
                 }
             ),
@@ -236,7 +236,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 ],
                 resolve: { source, args, context, info in
                     let limit = args["limit"] != .undefined ? try MapDecoder().decode(Int?.self, from: args["limit"]): nil
-                    let context = try cast(context, to: T.Context.self)
+                    let context = try cast(context, to: Context.self)
                     return try await T.Query.posts(limit: limit, context: context, info: info)
                 }
             ),
@@ -257,7 +257,7 @@ public func buildGraphQLSchema<T: ResolversProtocol>(Resolvers: T.Type) throws -
                 ],
                 resolve: { source, args, context, info in
                     let userInfoInput = try MapDecoder().decode(UserInfoInput.self, from: args["userInfo"])
-                    let context = try cast(context, to: T.Context.self)
+                    let context = try cast(context, to: Context.self)
                     return try await T.Mutation.upsertUser(userInfo: userInfoInput, context: context, info: info)
                 }
             ),
