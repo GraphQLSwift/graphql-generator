@@ -12,7 +12,7 @@ let package = Package(
         .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.0.0"),
     ],
     targets: [
-        .executableTarget(
+        .target(
             name: "HelloWorldServer",
             dependencies: [
                 .product(name: "GraphQL", package: "GraphQL"),
@@ -22,5 +22,12 @@ let package = Package(
                 .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator")
             ]
         ),
+        .testTarget(
+            name: "HelloWorldServerTests",
+            dependencies: [
+                "HelloWorldServer",
+                .product(name: "GraphQL", package: "GraphQL"),
+            ]
+        )
     ]
 )
