@@ -15,7 +15,10 @@ package struct SchemaGenerator {
         import GraphQLGeneratorRuntime
 
         /// Build a GraphQL schema with the provided resolvers
-        public func buildGraphQLSchema<Resolvers: ResolversProtocol>(resolvers: Resolvers.Type) throws -> GraphQLSchema {
+        public func buildGraphQLSchema<Resolvers: ResolversProtocol>(
+            resolvers: Resolvers.Type,
+            decoder: MapDecoder = .init(),
+        ) throws -> GraphQLSchema {
         """
 
         // Ignore any internal types (which have prefix "__")
@@ -713,7 +716,7 @@ package struct SchemaGenerator {
             let safeArgName = nameGenerator.swiftMemberName(for: argName)
             let swiftType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
             // Extract value from Map based on type
-            var decodeStatement = "try MapDecoder().decode((\(swiftType)).self, from: args[\"\(argName)\"])"
+            var decodeStatement = "try decoder.decode((\(swiftType)).self, from: args[\"\(argName)\"])"
             if !(arg.type is GraphQLNonNull) {
                 // If the arg is nullable, we get errors if we try to decode an `undefined` map. This protects against that.
                 decodeStatement = "args[\"\(argName)\"] != .undefined ? \(decodeStatement) : nil"

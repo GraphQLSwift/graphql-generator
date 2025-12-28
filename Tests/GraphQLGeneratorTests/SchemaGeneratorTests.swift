@@ -43,7 +43,10 @@ struct SchemaGeneratorTests {
         import GraphQLGeneratorRuntime
 
         /// Build a GraphQL schema with the provided resolvers
-        public func buildGraphQLSchema<Resolvers: ResolversProtocol>(resolvers: Resolvers.Type) throws -> GraphQLSchema {
+        public func buildGraphQLSchema<Resolvers: ResolversProtocol>(
+            resolvers: Resolvers.Type,
+            decoder: MapDecoder = .init(),
+        ) throws -> GraphQLSchema {
             let bar = try GraphQLObjectType(
                 name: "Bar",
                 description: """
