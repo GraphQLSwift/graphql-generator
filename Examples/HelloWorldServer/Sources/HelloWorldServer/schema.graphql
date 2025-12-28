@@ -9,7 +9,7 @@ union UserOrPost = User | Post
 
 input UserInfo {
   id: ID!
-  name: name!
+  name: String!
   email: String!
   age: Int
   role: Role

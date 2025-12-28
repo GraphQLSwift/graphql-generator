@@ -303,7 +303,7 @@ package struct SchemaGenerator {
 
             output += """
 
-                    )
+                    ),
             """
         }
 
@@ -384,7 +384,7 @@ package struct SchemaGenerator {
             for interface in interfaces {
                 output += """
 
-                        \(nameGenerator.swiftMemberName(for: interface.name))
+                        \(nameGenerator.swiftMemberName(for: interface.name)),
                 """
             }
 
@@ -464,7 +464,7 @@ package struct SchemaGenerator {
             for interface in interfaces {
                 output += """
 
-                        \(nameGenerator.swiftMemberName(for: interface.name))
+                        \(nameGenerator.swiftMemberName(for: interface.name)),
                 """
             }
 
@@ -689,8 +689,6 @@ package struct SchemaGenerator {
         target: ResolverTarget,
         parentType: GraphQLType
     ) throws -> String {
-        let safeFieldName = nameGenerator.swiftMemberName(for: fieldName)
-
         var output = """
 
         resolve: { source, args, context, info in
@@ -701,10 +699,12 @@ package struct SchemaGenerator {
 
         if target == .parent {
             // For nested resolvers, we decode and call the method on the parent instance
-            let parentCastType = try swiftTypeReference(for: parentType, nameGenerator: nameGenerator)
+            // We use the type Declaration name, since this should always be a non-list, non-nullable instance,
+            // and add 'any' because all intermediate types are represented as protocols
+            let parentCastType = try swiftTypeDeclaration(for: parentType, nameGenerator: nameGenerator)
             output += """
 
-                let parent = try cast(source, to: (\(parentCastType)).self)
+                let parent = try cast(source, to: (any \(parentCastType)).self)
             """
         }
 
@@ -713,9 +713,14 @@ package struct SchemaGenerator {
             let safeArgName = nameGenerator.swiftMemberName(for: argName)
             let swiftType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
             // Extract value from Map based on type
+            var decodeStatement = "try MapDecoder().decode((\(swiftType)).self, from: args[\"\(argName)\"])"
+            if !(arg.type is GraphQLNonNull) {
+                // If the arg is nullable, we get errors if we try to decode an `undefined` map. This protects against that.
+                decodeStatement = "args[\"\(argName)\"] != .undefined ? \(decodeStatement) : nil"
+            }
             output += """
 
-                let \(safeArgName) = try MapDecoder().decode((\(swiftType)).self, from: args["\(argName)"])
+                let \(safeArgName) = \(decodeStatement)
             """
             argsList.append("\(safeArgName): \(safeArgName)")
         }
@@ -736,9 +741,10 @@ package struct SchemaGenerator {
             case .query: "Resolvers.Query"
             case .mutation:  "Resolvers.Mutation"
         }
+        let functionName = nameGenerator.swiftMemberName(for: fieldName)
         output += """
 
-            return try await \(targetName).\(safeFieldName)(\(argsList.joined(separator: ", ")))
+            return try await \(targetName).\(functionName)(\(argsList.joined(separator: ", ")))
         }
         """
 

@@ -1,5 +1,6 @@
 import Foundation
 import GraphQL
+import GraphQLGeneratorRuntime
 
 // Must be created by user and named `Context`.
 public class Context: @unchecked Sendable {

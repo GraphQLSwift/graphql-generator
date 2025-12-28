@@ -26,10 +26,8 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         // (We could also generate per-file, but typically GraphQL schemas are combined)
         let schemaInputs = schemaFiles.map(\.url)
 
-        // Output files: Types.swift, Resolvers.swift, Schema.swift
         let outputFiles = [
             outputDirectory.appendingPathComponent("Types.swift"),
-            outputDirectory.appendingPathComponent("Resolvers.swift"),
             outputDirectory.appendingPathComponent("Schema.swift")
         ]
 
@@ -71,10 +69,8 @@ extension GraphQLGeneratorPlugin: XcodeBuildToolPlugin {
 
         let schemaInputs = schemaFiles.map(\.url)
 
-        // Output files: Types.swift, Resolvers.swift, Schema.swift
         let outputFiles = [
             outputDirectory.appendingPathComponent("Types.swift"),
-            outputDirectory.appendingPathComponent("Resolvers.swift"),
             outputDirectory.appendingPathComponent("Schema.swift")
         ]
 

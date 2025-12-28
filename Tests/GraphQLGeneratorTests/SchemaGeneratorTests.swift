@@ -58,7 +58,7 @@ struct SchemaGeneratorTests {
                         foo
                         """,
                         resolve: { source, args, context, info in
-                            let parent = try cast(source, to: ((any BarProtocol)?).self)
+                            let parent = try cast(source, to: (any BarProtocol).self)
                             let context = try cast(context, to: Context.self)
                             return try await parent.foo(context: context, info: info)
                         }

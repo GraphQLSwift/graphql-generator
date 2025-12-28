@@ -64,10 +64,10 @@ struct TypeGeneratorTests {
             /// B
             public protocol BInterface: AInterface, Sendable {
                 /// foo
-                public func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+                func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
 
                 /// baz
-                public func baz(context: Context, info: GraphQLResolveInfo) async throws -> String?
+                func baz(context: Context, info: GraphQLResolveInfo) async throws -> String?
 
             }
             """
@@ -117,10 +117,10 @@ struct TypeGeneratorTests {
             /// Foo
             public protocol FooProtocol: XUnion, AInterface, Sendable {
                 /// foo
-                public func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+                func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
 
                 /// bar
-                public func bar(foo: String, bar: String?, context: Context, info: GraphQLResolveInfo) async throws -> String?
+                func bar(foo: String, bar: String?, context: Context, info: GraphQLResolveInfo) async throws -> String?
 
             }
             """

@@ -7,7 +7,7 @@ public protocol Scalar: Sendable {
     static func parseLiteral(value: any Value) throws -> Map
 }
 
-extension Scalar {
+public extension Scalar {
     static func serialize(any: Any) throws -> Map {
         return try Map(any: any)
     }

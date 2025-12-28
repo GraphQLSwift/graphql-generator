@@ -7,8 +7,8 @@ func swiftTypeReference(for type: GraphQLType, nameGenerator: SafeNameGenerator)
         // Remove the optional marker if present
         if innerType.hasSuffix("?") {
             if innerType.hasPrefix("(") {
-                // Remove parentheses around "(any X)?"
-                return String(innerType.dropFirst().dropLast())
+                // Remove parentheses and trailing ? around "(any X)?"
+                return String(innerType.dropFirst().dropLast().dropLast())
             }
             // Remove trailing ? on "X?"
             return String(innerType.dropLast())
@@ -43,20 +43,29 @@ func swiftTypeReference(for type: GraphQLType, nameGenerator: SafeNameGenerator)
 
 /// Convert GraphQL type to Swift type name
 func swiftTypeDeclaration(for type: GraphQLType, nameGenerator: SafeNameGenerator) throws -> String {
-    guard let namedType = type as? GraphQLNamedType else {
-        throw GeneratorError.unsupportedType("Declarations must reference unmodified object types (not non-nulls or lists)")
+    if let nonNull = type as? GraphQLNonNull {
+        return try swiftTypeDeclaration(for: nonNull.ofType, nameGenerator: nameGenerator)
     }
-    let baseName = nameGenerator.swiftTypeName(for: namedType.name)
-    if type is GraphQLInputObjectType {
-        return "\(baseName)Input"
-    } else if type is GraphQLInterfaceType {
-        return "\(baseName)Interface"
-    } else if type is GraphQLObjectType {
-        return "\(baseName)Protocol"
-    } else if type is GraphQLUnionType {
-        return "\(baseName)Union"
+
+    if let list = type as? GraphQLList {
+        return try swiftTypeDeclaration(for: list.ofType, nameGenerator: nameGenerator)
     }
-    return baseName
+
+    if let namedType = type as? GraphQLNamedType {
+        let baseName = nameGenerator.swiftTypeName(for: namedType.name)
+        if type is GraphQLInputObjectType {
+            return "\(baseName)Input"
+        } else if type is GraphQLInterfaceType {
+            return "\(baseName)Interface"
+        } else if type is GraphQLObjectType {
+            return "\(baseName)Protocol"
+        } else if type is GraphQLUnionType {
+            return "\(baseName)Union"
+        }
+        return baseName
+    }
+
+    throw GeneratorError.unsupportedType("Unknown type: \(type)")
 }
 
 /// Map GraphQL scalar types to Swift types

@@ -82,7 +82,7 @@ package struct TypeGenerator {
             let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
             output += """
 
-            public protocol \(swiftTypeName)Union {}
+            public protocol \(swiftTypeName): Sendable {}
             """
 
             // Record which types need to be conformed
@@ -213,7 +213,7 @@ package struct TypeGenerator {
 
             output += """
 
-                public let \(fieldName.lowercased()): \(returnType)
+                public let \(nameGenerator.swiftMemberName(for: fieldName)): \(returnType)
             """
         }
 
@@ -277,7 +277,7 @@ package struct TypeGenerator {
 
             output += """
 
-                public func \(fieldName.lowercased())(\(paramString)) async throws -> \(returnType)
+                func \(nameGenerator.swiftMemberName(for: fieldName))(\(paramString)) async throws -> \(returnType)
 
             """
         }
@@ -345,7 +345,7 @@ package struct TypeGenerator {
 
             output += """
 
-                public func \(fieldName.lowercased())(\(paramString)) async throws -> \(returnType)
+                func \(nameGenerator.swiftMemberName(for: fieldName))(\(paramString)) async throws -> \(returnType)
 
             """
         }
@@ -407,7 +407,7 @@ package struct TypeGenerator {
 
             output += """
 
-                static func \(fieldName.lowercased())(\(paramString)) async throws -> \(returnType)
+                static func \(nameGenerator.swiftMemberName(for: fieldName))(\(paramString)) async throws -> \(returnType)
 
             """
         }
