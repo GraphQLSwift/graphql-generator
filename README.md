@@ -2,7 +2,7 @@
 
 A Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema).
 
-This tool uses [GraphQL Swift](https://github.com/GraphQLSwift/GraphQL) to generate type-safe Swift code and protocol stubs from your GraphQL schema files, eliminating boilerplate while maintaining full control over your business logic.
+This tool uses [GraphQL Swift](https://github.com/GraphQLSwift/GraphQL) to generate type-safe Swift code and protocol stubs from your GraphQL schema files, eliminating boilerplate while allowing you full control over your business logic.
 
 ## Features
 
@@ -44,14 +44,12 @@ Create a `.graphql` file in your target's `Sources` directory:
 **Sources/YourTarget/schema.graphql**:
 ```graphql
 type User {
-  id: ID!
   name: String!
-  email: String!
+  email: EmailAddress!
 }
 
 type Query {
-  user(id: ID!): User
-  users: [User!]!
+  user: User
 }
 ```
 
@@ -71,11 +69,7 @@ public actor Context {
 }
 ```
 
-Create any scalar types (with names matching GraphQL), and conform them to `Scalar`:
-
-```swift
-struct DateTime: Scalar {}
-```
+Create any scalar types (with names matching GraphQL), and conform them to `Scalar`. See the `Scalars` usage section below for details.
 
 Create a resolvers struct with the required typealiases:
 ```swift
@@ -85,8 +79,7 @@ struct Resolvers: ResolversProtocol {
 }
 ```
 
-As you build the `Query` and `Mutation` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL result, according to its generated protocol.
-Here's a small example of a schema that allows querying for the current user, who is only identified by an email address:
+As you build the `Query` and `Mutation` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL result, according to its generated protocol:
 
 ```swift
 struct Query: QueryProtocol {
@@ -99,12 +92,16 @@ struct Query: QueryProtocol {
 
 struct User: UserProtocol {
     // You can define the type internals however you like
+    let name: String
     let email: String
 
-    // This is required by `UserProtocol`, and used by GraphQL field resolution.
-    func email(context: Context, info: GraphQL.GraphQLResolveInfo) async throws -> String {
+    // These are required by `UserProtocol`, and used by GraphQL field resolution.
+    func name(context: Context, info: GraphQLResolveInfo) async throws -> String {
+        return name
+    }
+    func email(context: Context, info: GraphQLResolveInfo) async throws -> EmailAddress {
         // You can implement resolution logic however you like.
-        return email
+        return EmailAddress(email: self.email)
     }
 }
 ```
@@ -119,6 +116,54 @@ let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
 // Execute a query
 let result = try await graphql(schema: schema, request: "{ users { name email } }")
 print(result)
+```
+
+## Detailed Usage
+
+### Scalars
+
+Scalar types must be provided for each GraphQL scalar. Since GraphQL uses a different serialization system than Swift, you must conform the type to Swift's `Codable` and GraphQL's `Scalar`, and have them agree on a representation.
+
+Below is an example that represents a scalar struct as a raw String:
+
+```swift
+public struct EmailAddress: Scalar {
+    let email: String
+
+    init(email: String) {
+        self.email = email
+    }
+
+    // Codability conformance. Represent simply as `email` string.
+    public init(from decoder: any Decoder) throws {
+        self.email = try decoder.singleValueContainer().decode(String.self)
+    }
+    public func encode(to encoder: any Encoder) throws {
+        try self.email.encode(to: encoder)
+    }
+
+    // Scalar conformance. Parse & serialize simply as `email` string.
+    public static func serialize(this: Self) throws -> Map {
+        return .string(this.email)
+    }
+    public static func parseValue(map: Map) throws -> Map {
+        switch map {
+        case .string:
+            return map
+        default:
+            throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
+        }
+    }
+    public static func parseLiteral(value: any Value) throws -> Map {
+        guard let ast = value as? StringValue else {
+            throw GraphQLError(
+                message: "EmailAddress cannot represent non-string value: \(print(ast: value))",
+                nodes: [value]
+            )
+        }
+        return .string(ast.value)
+    }
+}
 ```
 
 ## Development Roadmap

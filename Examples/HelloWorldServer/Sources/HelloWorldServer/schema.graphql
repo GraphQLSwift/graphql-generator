@@ -1,8 +1,10 @@
+scalar EmailAddress
+
 interface HasEmail {
   """
   An email address
   """
-  email: String!
+  email: EmailAddress!
 }
 
 union UserOrPost = User | Post
@@ -10,7 +12,7 @@ union UserOrPost = User | Post
 input UserInfo {
   id: ID!
   name: String!
-  email: String!
+  email: EmailAddress!
   age: Int
   role: Role
 }
@@ -32,7 +34,7 @@ type User implements HasEmail {
   """
   The user's email address
   """
-  email: String!
+  email: EmailAddress!
 
   """
   The user's age
@@ -46,7 +48,7 @@ type User implements HasEmail {
 }
 
 type Contact implements HasEmail {
-  email: String!
+  email: EmailAddress!
 }
 
 """
