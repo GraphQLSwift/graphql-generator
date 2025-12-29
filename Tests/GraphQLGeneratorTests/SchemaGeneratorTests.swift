@@ -11,7 +11,7 @@ struct SchemaGeneratorTests {
             fields: [
                 "foo": .init(
                     type: GraphQLString,
-                    description: "foo",
+                    description: "foo"
                 ),
             ]
         )
@@ -21,16 +21,16 @@ struct SchemaGeneratorTests {
                 fields: [
                     "foo": .init(
                         type: GraphQLString,
-                        description: "foo",
+                        description: "foo"
                     ),
                     "bar": .init(
                         type: bar,
-                        description: "bar",
-                    )
+                        description: "bar"
+                    ),
                 ]
             ),
             types: [
-                bar
+                bar,
             ]
         )
         let actual = try SchemaGenerator().generate(schema: schema)

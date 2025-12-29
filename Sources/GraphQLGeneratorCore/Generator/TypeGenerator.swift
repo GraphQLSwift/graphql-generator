@@ -54,9 +54,9 @@ package struct TypeGenerator {
             $0 as? GraphQLEnumType
         }
         for type in enumTypes {
-            output += """
+            output += try"""
 
-            \(try generateEnum(for: type))
+            \(generateEnum(for: type))
             """
         }
 
@@ -65,9 +65,9 @@ package struct TypeGenerator {
             $0 as? GraphQLInputObjectType
         }
         for type in inputTypes {
-            output += """
+            output += try"""
 
-            \(try generateInputStruct(for: type))
+            \(generateInputStruct(for: type))
             """
         }
 
@@ -107,9 +107,9 @@ package struct TypeGenerator {
             $0 as? GraphQLInterfaceType
         }
         for type in interfaceTypes {
-            output += """
+            output += try"""
 
-            \(try generateInterfaceProtocol(for: type))
+            \(generateInterfaceProtocol(for: type))
             """
         }
 
@@ -119,37 +119,37 @@ package struct TypeGenerator {
         }.filter {
             // Skip root operation types
             $0.name != "Query" &&
-            $0.name != "Mutation" &&
-            $0.name != "Subscription"
+                $0.name != "Mutation" &&
+                $0.name != "Subscription"
         }
         for type in objectTypes {
-            output += """
+            output += try"""
 
-            \(try generateTypeProtocol(for: type, unionTypeMap: unionTypeMap))
+            \(generateTypeProtocol(for: type, unionTypeMap: unionTypeMap))
             """
         }
 
         // Generate Query type
         if let queryType = schema.queryType {
-            output += """
+            output += try"""
 
-            \(try generateRootTypeProtocol(for: queryType))
+            \(generateRootTypeProtocol(for: queryType))
             """
         }
 
         // Generate Mutation type
         if let mutationType = schema.mutationType {
-            output += """
+            output += try"""
 
-            \(try generateRootTypeProtocol(for: mutationType))
+            \(generateRootTypeProtocol(for: mutationType))
             """
         }
 
         // Generate Mutation type
         if let subscriptionType = schema.subscriptionType {
-            output += """
+            output += try"""
 
-            \(try generateRootTypeProtocol(for: subscriptionType))
+            \(generateRootTypeProtocol(for: subscriptionType))
             """
         }
 
@@ -196,7 +196,6 @@ package struct TypeGenerator {
 
         return output
     }
-
 
     func generateInputStruct(for type: GraphQLInputObjectType) throws -> String {
         var output = ""
@@ -251,7 +250,7 @@ package struct TypeGenerator {
         }
 
         let interfaces = try type.interfaces().map {
-            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator)+", "
+            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator) + ", "
         }.joined(separator: "")
 
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
@@ -315,11 +314,11 @@ package struct TypeGenerator {
         }
 
         let unions = try unionTypeMap[type.name]?.map {
-            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator)+", "
+            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator) + ", "
         }.joined(separator: "") ?? ""
 
         let interfaces = try type.interfaces().map {
-            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator)+", "
+            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator) + ", "
         }.joined(separator: "")
 
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
@@ -442,7 +441,7 @@ package enum GeneratorError: Error, CustomStringConvertible {
 
     package var description: String {
         switch self {
-        case .unsupportedType(let message):
+        case let .unsupportedType(message):
             return "Unsupported type: \(message)"
         }
     }

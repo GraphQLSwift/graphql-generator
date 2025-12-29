@@ -8,8 +8,8 @@ struct HelloWorldServerTests {
     @Test func query() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
         let context = Context(
-            users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
-            posts: ["1" : .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
+            users: ["1": .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
+            posts: ["1": .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
         )
         let actual = try await graphql(
             schema: schema,
@@ -43,10 +43,10 @@ struct HelloWorldServerTests {
                             "name": "John",
                             "email": "john@example.com",
                             "age": 18,
-                            "role": "USER"
-                        ]
-                    ]
-                ]
+                            "role": "USER",
+                        ],
+                    ],
+                ],
             ]
         )
         #expect(actual == expected)
@@ -80,8 +80,8 @@ struct HelloWorldServerTests {
                     "name": "Jane",
                     "email": "jane@example.com",
                     "age": nil,
-                    "role": "USER"
-                ]
+                    "role": "USER",
+                ],
             ]
         )
         #expect(actual == expected)
@@ -90,7 +90,7 @@ struct HelloWorldServerTests {
     @Test func subscription() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
         let context = Context(
-            users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
+            users: ["1": .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
             posts: [:]
         )
         let stream = try await graphqlSubscribe(
@@ -120,8 +120,8 @@ struct HelloWorldServerTests {
                         "name": "John",
                         "email": "john@example.com",
                         "age": 18,
-                        "role": "USER"
-                    ]
+                        "role": "USER",
+                    ],
                 ]
             )
         )
@@ -135,8 +135,8 @@ struct HelloWorldServerTests {
                         "name": "John",
                         "email": "john@example.com",
                         "age": 18,
-                        "role": "USER"
-                    ]
+                        "role": "USER",
+                    ],
                 ]
             )
         )

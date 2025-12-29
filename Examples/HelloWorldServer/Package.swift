@@ -1,11 +1,11 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.0
 
 import PackageDescription
 
 let package = Package(
     name: "HelloWorldServer",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v13),
     ],
     dependencies: [
         .package(name: "graphql-generator", path: "../.."),
@@ -19,7 +19,7 @@ let package = Package(
                 .product(name: "GraphQLGeneratorRuntime", package: "graphql-generator"),
             ],
             plugins: [
-                .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator")
+                .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator"),
             ]
         ),
         .testTarget(
@@ -28,6 +28,6 @@ let package = Package(
                 "HelloWorldServer",
                 .product(name: "GraphQL", package: "GraphQL"),
             ]
-        )
+        ),
     ]
 )

@@ -3,7 +3,7 @@ import GraphQL
 
 /// Main code generator that orchestrates generation of all Swift files
 package struct CodeGenerator {
-    package init() { }
+    package init() {}
 
     /// Generate all Swift files from the schema
     /// Returns a dictionary of filename -> file content

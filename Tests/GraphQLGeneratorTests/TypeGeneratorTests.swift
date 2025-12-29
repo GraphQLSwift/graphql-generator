@@ -12,12 +12,12 @@ struct TypeGeneratorTests {
                 values: [
                     "foo": .init(
                         value: .string("foo"),
-                        description: "foo",
+                        description: "foo"
                     ),
                     "bar": .init(
                         value: .string("bar"),
-                        description: "bar",
-                    )
+                        description: "bar"
+                    ),
                 ]
             )
         )
@@ -54,7 +54,7 @@ struct TypeGeneratorTests {
                 "baz": .init(
                     type: GraphQLString,
                     description: "baz"
-                )
+                ),
             ]
         )
         let actual = try TypeGenerator().generateInterfaceProtocol(for: interfaceB)
@@ -93,22 +93,22 @@ struct TypeGeneratorTests {
                     args: [
                         "foo": .init(
                             type: GraphQLNonNull(GraphQLString),
-                            description: "foo",
+                            description: "foo"
                         ),
                         "bar": .init(
                             type: GraphQLString,
                             description: "bar",
-                            defaultValue: .string("bar"),
+                            defaultValue: .string("bar")
                         ),
                     ]
-                )
+                ),
             ],
-            interfaces: [interfaceA],
+            interfaces: [interfaceA]
         )
         let actual = try TypeGenerator().generateTypeProtocol(
             for: typeFoo,
             unionTypeMap: [
-                "Foo": [GraphQLUnionType(name: "X", types: [typeFoo])]
+                "Foo": [GraphQLUnionType(name: "X", types: [typeFoo])],
             ]
         )
         #expect(
@@ -134,7 +134,7 @@ struct TypeGeneratorTests {
             fields: [
                 "foo": .init(
                     type: GraphQLString,
-                    description: "foo",
+                    description: "foo"
                 ),
             ]
         )
@@ -143,12 +143,12 @@ struct TypeGeneratorTests {
             fields: [
                 "foo": .init(
                     type: GraphQLString,
-                    description: "foo",
+                    description: "foo"
                 ),
                 "bar": .init(
                     type: bar,
-                    description: "bar",
-                )
+                    description: "bar"
+                ),
             ]
         )
         let actual = try TypeGenerator().generateRootTypeProtocol(for: query)
@@ -167,7 +167,6 @@ struct TypeGeneratorTests {
         )
     }
 
-
     @Test func subscriptionType() async throws {
         let subscription = try GraphQLObjectType(
             name: "Subscription",
@@ -177,10 +176,10 @@ struct TypeGeneratorTests {
                     description: "foo",
                     args: [
                         "id": .init(
-                            type: GraphQLString,
-                        )
+                            type: GraphQLString
+                        ),
                     ]
-                )
+                ),
             ]
         )
         let actual = try TypeGenerator().generateRootTypeProtocol(for: subscription)

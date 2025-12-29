@@ -1,8 +1,8 @@
 extension String {
     func indent(_ num: Int, includeFirst: Bool = true) -> String {
-        let indent = String.init(repeating: "    ", count: num)
+        let indent = String(repeating: "    ", count: num)
         var firstLine = true
-        return self.split(separator: "\n").map { line in
+        return split(separator: "\n").map { line in
             var result = line
             if !line.isEmpty {
                 if !firstLine || includeFirst {

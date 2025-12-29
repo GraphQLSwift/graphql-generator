@@ -15,22 +15,22 @@ struct IndentTests {
             abc
             def
             """.indent(1, includeFirst: false)
-            ==
-            """
-            abc
-                def
-            """
+                ==
+                """
+                abc
+                    def
+                """
         )
         #expect(
             """
             abc
             def
             """.indent(1, includeFirst: true)
-            ==
-            """
-                abc
-                def
-            """
+                ==
+                """
+                    abc
+                    def
+                """
         )
     }
 }

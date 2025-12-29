@@ -89,11 +89,11 @@ func mapToSwiftCode(_ map: Map) -> String {
         return ".undefined"
     case .null:
         return ".null"
-    case .bool(let value):
+    case let .bool(value):
         return ".bool(\(value))"
-    case .number(let value):
+    case let .number(value):
         return ".number(Number(\(value)))"
-    case .string(let value):
+    case let .string(value):
         // Escape special characters for Swift string literal
         let escaped = value
             .replacingOccurrences(of: "\\", with: "\\\\")
@@ -102,10 +102,10 @@ func mapToSwiftCode(_ map: Map) -> String {
             .replacingOccurrences(of: "\r", with: "\\r")
             .replacingOccurrences(of: "\t", with: "\\t")
         return ".string(\"\(escaped)\")"
-    case .array(let values):
+    case let .array(values):
         let elements = values.map { mapToSwiftCode($0) }.joined(separator: ", ")
         return ".array([\(elements)])"
-    case .dictionary(let dict):
+    case let .dictionary(dict):
         let pairs = dict.map { key, value in
             let escapedKey = key
                 .replacingOccurrences(of: "\\", with: "\\\\")

@@ -1,5 +1,5 @@
-import PackagePlugin
 import Foundation
+import PackagePlugin
 
 @main
 struct GraphQLGeneratorPlugin: BuildToolPlugin {
@@ -28,11 +28,11 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
 
         let outputFiles = [
             outputDirectory.appendingPathComponent("Types.swift"),
-            outputDirectory.appendingPathComponent("Schema.swift")
+            outputDirectory.appendingPathComponent("Schema.swift"),
         ]
 
         let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [
-            "--output-directory", outputDirectory.path
+            "--output-directory", outputDirectory.path,
         ]
 
         return [
@@ -42,52 +42,52 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
                 arguments: arguments,
                 inputFiles: schemaInputs,
                 outputFiles: outputFiles
-            )
+            ),
         ]
     }
 }
 
 #if canImport(XcodeProjectPlugin)
-import XcodeProjectPlugin
+    import XcodeProjectPlugin
 
-extension GraphQLGeneratorPlugin: XcodeBuildToolPlugin {
-    /// Entry point for creating build commands for targets in Xcode projects.
-    func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws -> [Command] {
-        // Find GraphQL schema files
-        let schemaFiles = target.inputFiles.filter { file in
-            file.url.pathExtension == "graphql" || file.url.pathExtension == "gql"
+    extension GraphQLGeneratorPlugin: XcodeBuildToolPlugin {
+        /// Entry point for creating build commands for targets in Xcode projects.
+        func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws -> [Command] {
+            // Find GraphQL schema files
+            let schemaFiles = target.inputFiles.filter { file in
+                file.url.pathExtension == "graphql" || file.url.pathExtension == "gql"
+            }
+
+            // If no schema files found, return early
+            guard !schemaFiles.isEmpty else { return [] }
+
+            // Find the generator tool
+            let generatorTool = try context.tool(named: "GraphQLGenerator")
+
+            // Create output directory for generated files
+            let outputDirectory = context.pluginWorkDirectoryURL
+
+            let schemaInputs = schemaFiles.map(\.url)
+
+            let outputFiles = [
+                outputDirectory.appendingPathComponent("Types.swift"),
+                outputDirectory.appendingPathComponent("Schema.swift"),
+            ]
+
+            let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [
+                "--output-directory", outputDirectory.path,
+            ]
+
+            return [
+                .buildCommand(
+                    displayName: "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
+                    executable: generatorTool.url,
+                    arguments: arguments,
+                    inputFiles: schemaInputs,
+                    outputFiles: outputFiles
+                ),
+            ]
         }
-
-        // If no schema files found, return early
-        guard !schemaFiles.isEmpty else { return [] }
-
-        // Find the generator tool
-        let generatorTool = try context.tool(named: "GraphQLGenerator")
-
-        // Create output directory for generated files
-        let outputDirectory = context.pluginWorkDirectoryURL
-
-        let schemaInputs = schemaFiles.map(\.url)
-
-        let outputFiles = [
-            outputDirectory.appendingPathComponent("Types.swift"),
-            outputDirectory.appendingPathComponent("Schema.swift")
-        ]
-
-        let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [
-            "--output-directory", outputDirectory.path
-        ]
-
-        return [
-            .buildCommand(
-                displayName: "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
-                executable: generatorTool.url,
-                arguments: arguments,
-                inputFiles: schemaInputs,
-                outputFiles: outputFiles
-            )
-        ]
     }
-}
 
 #endif

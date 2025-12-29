@@ -34,18 +34,18 @@ package struct SchemaGenerator {
             !["Int", "Float", "String", "Boolean", "ID"].contains($0.name)
         }
         for scalarType in scalarTypes {
-            output += """
+            output += try"""
 
-            \(try generateScalarTypeDefinition(for: scalarType).indent(1))
+            \(generateScalarTypeDefinition(for: scalarType).indent(1))
             """
         }
 
         // Generate enum type definitions
         let enumTypes = types.compactMap { $0 as? GraphQLEnumType }
         for enumType in enumTypes {
-            output += """
+            output += try"""
 
-            \(try generateEnumTypeDefinition(for: enumType).indent(1))
+            \(generateEnumTypeDefinition(for: enumType).indent(1))
             """
         }
 
@@ -54,9 +54,9 @@ package struct SchemaGenerator {
             $0 as? GraphQLInterfaceType
         }
         for interfaceType in interfaceTypes {
-            output += """
+            output += try"""
 
-            \(try generateInterfaceTypeDefinition(for: interfaceType, resolvers: "resolvers").indent(1))
+            \(generateInterfaceTypeDefinition(for: interfaceType, resolvers: "resolvers").indent(1))
             """
         }
 
@@ -65,9 +65,9 @@ package struct SchemaGenerator {
             $0 as? GraphQLInputObjectType
         }
         for inputType in inputTypes {
-            output += """
+            output += try"""
 
-            \(try generateInputTypeDefinition(for: inputType).indent(1))
+            \(generateInputTypeDefinition(for: inputType).indent(1))
             """
         }
 
@@ -79,13 +79,13 @@ package struct SchemaGenerator {
         }.filter {
             // Skip root operation types
             $0.name != "Query" &&
-            $0.name != "Mutation" &&
-            $0.name != "Subscription"
+                $0.name != "Mutation" &&
+                $0.name != "Subscription"
         }
         for objectType in objectTypes {
-            output += """
+            output += try"""
 
-            \(try generateObjectTypeDefinition(for: objectType).indent(1))
+            \(generateObjectTypeDefinition(for: objectType).indent(1))
             """
         }
         // Generate type definitions for all union object types
@@ -93,53 +93,53 @@ package struct SchemaGenerator {
             $0 as? GraphQLUnionType
         }
         for unionType in unionTypes {
-            output += """
+            output += try"""
 
-            \(try generateUnionTypeDefinition(for: unionType).indent(1))
+            \(generateUnionTypeDefinition(for: unionType).indent(1))
             """
         }
 
         // Generate field and interface definitions for non-root types
         for inputType in inputTypes {
-            output += """
+            output += try"""
 
-            \(try generateInputTypeFieldDefinition(for: inputType).indent(1))
+            \(generateInputTypeFieldDefinition(for: inputType).indent(1))
             """
         }
         for interfaceType in interfaceTypes {
-            output += """
+            output += try"""
 
-            \(try generateInterfaceTypeFieldDefinition(for: interfaceType).indent(1))
+            \(generateInterfaceTypeFieldDefinition(for: interfaceType).indent(1))
             """
         }
         for objectType in objectTypes {
-            output += """
+            output += try"""
 
-            \(try generateObjectTypeFieldDefinition(for: objectType, resolvers: "parent").indent(1))
+            \(generateObjectTypeFieldDefinition(for: objectType, resolvers: "parent").indent(1))
             """
         }
 
         // Generate Query type
         if let queryType = schema.queryType {
-            output += """
+            output += try"""
 
-            \(try generateRootTypeDefinition(for: queryType, rootType: .query).indent(1))
+            \(generateRootTypeDefinition(for: queryType, rootType: .query).indent(1))
             """
         }
 
         // Generate Mutation type if it exists
         if let mutationType = schema.mutationType {
-            output += """
+            output += try"""
 
-            \(try generateRootTypeDefinition(for: mutationType, rootType: .mutation).indent(1))
+            \(generateRootTypeDefinition(for: mutationType, rootType: .mutation).indent(1))
             """
         }
 
         // Generate Subscription type if it exists
         if let subscriptionType = schema.subscriptionType {
-            output += """
+            output += try"""
 
-            \(try generateRootTypeDefinition(for: subscriptionType, rootType: .subscription).indent(1))
+            \(generateRootTypeDefinition(for: subscriptionType, rootType: .subscription).indent(1))
             """
         }
 
@@ -294,10 +294,10 @@ package struct SchemaGenerator {
         // Generate fields
         let fields = try type.fields()
         for (fieldName, field) in fields {
-            output += """
+            output += try """
 
                     "\(fieldName)": InputObjectField(
-                        type: \(try graphQLTypeReference(for: field.type)),
+                        type: \(graphQLTypeReference(for: field.type)),
             """
 
             if let defaultValue = field.defaultValue {
@@ -339,7 +339,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateInterfaceTypeDefinition(for type: GraphQLInterfaceType, resolvers: String) throws -> String {
+    private func generateInterfaceTypeDefinition(for type: GraphQLInterfaceType, resolvers _: String) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -377,10 +377,9 @@ package struct SchemaGenerator {
         // Generate fields
         let fields = try type.fields()
         for (fieldName, field) in fields {
+            output += try"""
 
-            output += """
-
-            \(try generateFieldDefinition(
+            \(generateFieldDefinition(
                 fieldName: fieldName,
                 field: field,
                 target: .parent,
@@ -447,7 +446,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateObjectTypeFieldDefinition(for type: GraphQLObjectType, resolvers: String) throws -> String {
+    private func generateObjectTypeFieldDefinition(for type: GraphQLObjectType, resolvers _: String) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -458,9 +457,9 @@ package struct SchemaGenerator {
         // Generate fields
         let fields = try type.fields()
         for (fieldName, field) in fields {
-            output += """
+            output += try"""
 
-            \(try generateFieldDefinition(
+            \(generateFieldDefinition(
                 fieldName: fieldName,
                 field: field,
                 target: .parent,
@@ -523,9 +522,9 @@ package struct SchemaGenerator {
             types: [
         """
         for type in try type.types() {
-            output += """
+            output += try"""
 
-                    \(try graphQLTypeReference(for: type)),
+                    \(graphQLTypeReference(for: type)),
             """
         }
 
@@ -543,15 +542,15 @@ package struct SchemaGenerator {
         let variableName: String
         let target: ResolverTarget
         switch rootType {
-            case .query:
-                variableName = "query"
-                target = .query
-            case .mutation:
-                variableName = "mutation"
-                target = .mutation
-            case .subscription:
-                variableName = "subscription"
-                target = .subscription
+        case .query:
+            variableName = "query"
+            target = .query
+        case .mutation:
+            variableName = "mutation"
+            target = .mutation
+        case .subscription:
+            variableName = "subscription"
+            target = .subscription
         }
 
         var output = """
@@ -577,9 +576,9 @@ package struct SchemaGenerator {
         // Generate fields
         let fields = try type.fields()
         for (fieldName, field) in fields {
-            output += """
+            output += try"""
 
-            \(try generateFieldDefinition(
+            \(generateFieldDefinition(
                 fieldName: fieldName,
                 field: field,
                 target: target,
@@ -603,10 +602,10 @@ package struct SchemaGenerator {
         target: ResolverTarget,
         parentType: GraphQLNamedType
     ) throws -> String {
-        var output = """
+        var output = try """
 
         "\(fieldName)": GraphQLField(
-            type: \(try graphQLTypeReference(for: field.type)),
+            type: \(graphQLTypeReference(for: field.type)),
         """
 
         if let description = field.description {
@@ -635,10 +634,10 @@ package struct SchemaGenerator {
             """
 
             for (argName, arg) in field.args {
-                output += """
+                output += try """
 
                         "\(argName)": GraphQLArgument(
-                            type: \(try graphQLTypeReference(for: arg.type))
+                            type: \(graphQLTypeReference(for: arg.type))
                 """
 
                 if let description = arg.description {
@@ -669,9 +668,9 @@ package struct SchemaGenerator {
             """
         }
 
-        output += """
+        output += try"""
 
-        \(try generateResolverCallback(
+        \(generateResolverCallback(
             fieldName: fieldName,
             field: field,
             target: target,
@@ -705,7 +704,6 @@ package struct SchemaGenerator {
             resolve: { source, args, context, info in
             """
         }
-
 
         // Build argument list
         var argsList: [String] = []
@@ -750,10 +748,10 @@ package struct SchemaGenerator {
 
         // Call the resolver
         let targetName = switch target {
-            case .parent: "parent"
-            case .query: "Resolvers.Query"
-            case .mutation: "Resolvers.Mutation"
-            case .subscription: "Resolvers.Subscription"
+        case .parent: "parent"
+        case .query: "Resolvers.Query"
+        case .mutation: "Resolvers.Mutation"
+        case .subscription: "Resolvers.Subscription"
         }
         let functionName = nameGenerator.swiftMemberName(for: fieldName)
         output += """
@@ -768,11 +766,11 @@ package struct SchemaGenerator {
     /// Generate GraphQL type reference string (e.g., "GraphQLString", "GraphQLNonNull(GraphQLString)")
     private func graphQLTypeReference(for type: GraphQLType) throws -> String {
         if let nonNull = type as? GraphQLNonNull {
-            return "GraphQLNonNull(\(try graphQLTypeReference(for: nonNull.ofType)))"
+            return try "GraphQLNonNull(\(graphQLTypeReference(for: nonNull.ofType)))"
         }
 
         if let list = type as? GraphQLList {
-            return "GraphQLList(\(try graphQLTypeReference(for: list.ofType)))"
+            return try "GraphQLList(\(graphQLTypeReference(for: list.ofType)))"
         }
 
         if let namedType = type as? GraphQLNamedType {

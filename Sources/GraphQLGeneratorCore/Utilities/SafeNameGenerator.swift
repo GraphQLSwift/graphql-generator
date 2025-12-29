@@ -17,7 +17,6 @@ import Foundation
 
 /// Computes a string sanitized to be usable as a Swift identifier in various contexts.
 protocol SafeNameGenerator {
-
     /// Returns a string sanitized to be usable as a Swift type name in a general context.
     /// - Parameter documentedName: The input unsanitized string from the OpenAPI document.
     /// - Returns: The sanitized string.
@@ -68,11 +67,15 @@ struct DefensiveSafeNameGenerator: SafeNameGenerator {
             } else {
                 sanitizedScalars.append("_")
                 if let entityName = Self.specialCharsMap[scalar] {
-                    for char in entityName.unicodeScalars { sanitizedScalars.append(char) }
+                    for char in entityName.unicodeScalars {
+                        sanitizedScalars.append(char)
+                    }
                 } else {
                     sanitizedScalars.append("x")
                     let hexString = String(scalar.value, radix: 16, uppercase: true)
-                    for char in hexString.unicodeScalars { sanitizedScalars.append(char) }
+                    for char in hexString.unicodeScalars {
+                        sanitizedScalars.append(char)
+                    }
                 }
                 sanitizedScalars.append("_")
                 continue
@@ -123,7 +126,6 @@ extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
 ///
 /// Check out [SOAR-0013](https://swiftpackageindex.com/apple/swift-openapi-generator/documentation/swift-openapi-generator/soar-0013) for details.
 struct IdiomaticSafeNameGenerator: SafeNameGenerator {
-
     /// The defensive strategy to use as fallback.
     var defensive: DefensiveSafeNameGenerator
 
@@ -181,7 +183,7 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
                     state = .accumulatingFirstWord(.init(isAccumulatingInitialUppercase: false))
                     buffer.append(char)
                 }
-            case .accumulatingFirstWord(var context):
+            case var .accumulatingFirstWord(context):
                 if char.isLetter || char.isNumber {
                     if isAllUppercase {
                         buffer.append(contentsOf: char.lowercased())
