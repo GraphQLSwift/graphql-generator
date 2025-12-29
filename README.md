@@ -217,12 +217,11 @@ public struct EmailAddress: Scalar {
 
 ## Development Roadmap
 
-1. Default values: Default values are currently ignored
-2. Directives: Directives are currently not supported
-3. Subscription: Subscription definitions are currently ignored
-4. Improved testing: Generator tests should cover much more of the functionality
-5. Additional examples: Ideally large ones that cover significant GraphQL features
-6. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
+1. Directives: Directives are currently not supported
+2. Subscription: Subscription definitions are currently ignored
+3. Improved testing: Generator tests should cover much more of the functionality
+4. Additional examples: Ideally large ones that cover significant GraphQL features
+5. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
 
 ## Contributing
 

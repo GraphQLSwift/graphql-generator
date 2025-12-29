@@ -285,7 +285,12 @@ package struct SchemaGenerator {
                         type: \(try graphQLTypeReference(for: field.type)),
             """
 
-            // TODO: Default value support
+            if let defaultValue = field.defaultValue {
+                output += """
+
+                            defaultValue: \(mapToSwiftCode(defaultValue)),
+                """
+            }
 
             if let description = field.description {
                 output += """
@@ -657,6 +662,13 @@ package struct SchemaGenerator {
                             description: \"\"\"
                             \(description)
                             \"\"\"
+                    """
+                }
+
+                if let defaultValue = arg.defaultValue {
+                    output += """
+                    ,
+                            defaultValue: \(mapToSwiftCode(defaultValue))
                     """
                 }
 

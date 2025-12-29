@@ -14,7 +14,7 @@ input UserInfo {
   name: String!
   email: EmailAddress!
   age: Int
-  role: Role
+  role: Role = USER
 }
 
 """

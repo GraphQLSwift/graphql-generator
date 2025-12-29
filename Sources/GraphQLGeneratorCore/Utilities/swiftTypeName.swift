@@ -81,3 +81,37 @@ func mapScalarType(_ graphQLType: String, nameGenerator: SafeNameGenerator) -> S
         return nameGenerator.swiftTypeName(for: graphQLType)
     }
 }
+
+/// Converts a Map value to valid Swift code representation
+func mapToSwiftCode(_ map: Map) -> String {
+    switch map {
+    case .undefined:
+        return ".undefined"
+    case .null:
+        return ".null"
+    case .bool(let value):
+        return ".bool(\(value))"
+    case .number(let value):
+        return ".number(Number(\(value)))"
+    case .string(let value):
+        // Escape special characters for Swift string literal
+        let escaped = value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t")
+        return ".string(\"\(escaped)\")"
+    case .array(let values):
+        let elements = values.map { mapToSwiftCode($0) }.joined(separator: ", ")
+        return ".array([\(elements)])"
+    case .dictionary(let dict):
+        let pairs = dict.map { key, value in
+            let escapedKey = key
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+            return "\"\(escapedKey)\": \(mapToSwiftCode(value))"
+        }.joined(separator: ", ")
+        return ".dictionary([\(pairs)])"
+    }
+}

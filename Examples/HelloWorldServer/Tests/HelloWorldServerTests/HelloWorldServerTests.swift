@@ -11,45 +11,45 @@ struct HelloWorldServerTests {
             users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
             posts: ["1" : .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
         )
-        #expect(
-            try await graphql(
-                schema: schema,
-                request: """
-                {
-                    posts {
+        let actual = try await graphql(
+            schema: schema,
+            request: """
+            {
+                posts {
+                    id
+                    title
+                    content
+                    author {
                         id
-                        title
-                        content
-                        author {
-                            id
-                            name
-                            email
-                            age
-                            role
-                        }
+                        name
+                        email
+                        age
+                        role
                     }
                 }
-                """,
-                context: context
-            ) == .init(
-                data: [
-                    "posts": [
-                        [
+            }
+            """,
+            context: context
+        )
+        let expected = GraphQLResult(
+            data: [
+                "posts": [
+                    [
+                        "id": "1",
+                        "title": "Foo",
+                        "content": "bar",
+                        "author": [
                             "id": "1",
-                            "title": "Foo",
-                            "content": "bar",
-                            "author": [
-                                "id": "1",
-                                "name": "John",
-                                "email": "john@example.com",
-                                "age": 18,
-                                "role": "USER"
-                            ]
+                            "name": "John",
+                            "email": "john@example.com",
+                            "age": 18,
+                            "role": "USER"
                         ]
                     ]
                 ]
-            )
+            ]
         )
+        #expect(actual == expected)
     }
 
     @Test func mutation() async throws {
@@ -58,32 +58,32 @@ struct HelloWorldServerTests {
             users: [:],
             posts: [:]
         )
-        #expect(
-            try await graphql(
-                schema: schema,
-                request: """
-                mutation {
-                    upsertUser(userInfo: {id: "2", name: "Jane", email: "jane@example.com"}) {
-                        id
-                        name
-                        email
-                        age
-                        role
-                    }
+        let actual = try await graphql(
+            schema: schema,
+            request: """
+            mutation {
+                upsertUser(userInfo: {id: "2", name: "Jane", email: "jane@example.com"}) {
+                    id
+                    name
+                    email
+                    age
+                    role
                 }
-                """,
-                context: context
-            ) == .init(
-                data: [
-                    "upsertUser": [
-                        "id": "2",
-                        "name": "Jane",
-                        "email": "jane@example.com",
-                        "age": nil,
-                        "role": nil
-                    ]
-                ]
-            )
+            }
+            """,
+            context: context
         )
+        let expected = GraphQLResult(
+            data: [
+                "upsertUser": [
+                    "id": "2",
+                    "name": "Jane",
+                    "email": "jane@example.com",
+                    "age": nil,
+                    "role": "USER"
+                ]
+            ]
+        )
+        #expect(actual == expected)
     }
 }
