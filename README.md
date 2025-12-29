@@ -1,3 +1,5 @@
+***WARNING***: This package is in beta. It's API is still evolving and is subject to breaking changes.
+
 # GraphQL Generator for Swift
 
 A Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema).
@@ -57,7 +59,7 @@ type Query {
 
 When you build, the plugin will automatically generate Swift code:
 - `Types.swift` - Swift protocols for your GraphQL types
-- `Schema.swift` - Schema
+- `Schema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema
 
 ### 3. Create required types
 
@@ -118,11 +120,58 @@ let result = try await graphql(schema: schema, request: "{ users { name email } 
 print(result)
 ```
 
-## Detailed Usage
+## Design
 
-### Scalars
+### Root Types
+Root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method requirements for each field. The user must implement these types and provide them to the `buildGraphQLSchema` function.
 
-Scalar types must be provided for each GraphQL scalar. Since GraphQL uses a different serialization system than Swift, you must conform the type to Swift's `Codable` and GraphQL's `Scalar`, and have them agree on a representation.
+### Object Types
+Object types are modeled as Swift protocols with instance method requirements for each field. This is to enable maximum implementation flexibility. Internally, GraphQL passes result objects directly through to subsequent resolvers. By only specifying the interface, we allow the backing types to be incredibly dynamic - they can be simple codable structs or complex stateful actors, reference or values types, or any other type configuration.
+
+Furthermore, by only referencing protocols, we can have multiple Swift types back a particular GraphQL type, and can easily mock portions of the schema. As an example, consider the following schema snippet:
+```graphql
+type A {
+  foo: String
+}
+```
+
+This would result in the following protocol:
+```swift
+public protocol AProtocol: Sendable {
+    func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+}
+```
+
+You could define two conforming types. To use `ATest` in tests, simply return it from the relevant resolvers.
+```swift
+struct A: AProtocol {
+    let foo: String
+    func foo(context: Context, info: GraphQLResolveInfo) async throws -> String {
+        return foo
+    }
+}
+struct ATest: AProtocol {
+    func foo(context: Context, info: GraphQLResolveInfo) async throws -> String {
+        return "test"
+    }
+}
+```
+
+
+### Interface Types
+Interfaces are modeled as a protocol with required methods for each relevant field. Implementing objects and interfaces are marked as requiring conformance to the interface protocol.
+
+### Union Types
+Union types are modeled as a marker protocol, with no required properties or functions. Related objects are marked as requiring conformance to the union protocol.
+
+### Input Object Types
+Input object types are modeled as a deterministic Codable struct with the declared fields. If more complex objects must be created from the codable struct, this can be done in the resolver itself, since input objects only relevant for their associated resolver (they are not passed to downstream resolvers).
+
+### Enum Types
+Enum types are modeled as a deterministic String enum with values matching the declared fields and associated representations. If you need different values or more complex implementations, simply convert to/from a different representation inside your resolvers.
+
+### Scalar Types
+Scalar types are not modeled by the generator. They are simply referenced using the Scalar's name, and you are expected to implement the required type. Since GraphQL uses a different serialization system than Swift, you must conform the type to Swift's `Codable` and GraphQL's `Scalar`, and have them agree on a representation.
 
 Below is an example that represents a scalar struct as a raw String:
 
