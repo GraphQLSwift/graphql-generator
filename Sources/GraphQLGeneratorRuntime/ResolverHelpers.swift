@@ -1,0 +1,10 @@
+import GraphQL
+
+public func cast<T: Sendable>(_ anySendable: any Sendable, to _: T.Type) throws -> T {
+    guard let result = anySendable as? T else {
+        throw GraphQLError(
+            message: "Expected source type \(T.self) but got \(type(of: anySendable))"
+        )
+    }
+    return result
+}

@@ -1,0 +1,124 @@
+scalar EmailAddress
+
+interface HasEmail {
+  """
+  An email address
+  """
+  email: EmailAddress!
+}
+
+union UserOrPost = User | Post
+
+input UserInfo {
+  id: ID!
+  name: String!
+  email: EmailAddress!
+  age: Int
+  role: Role = USER
+}
+
+"""
+A simple user type
+"""
+type User implements HasEmail {
+  """
+  The unique identifier for the user
+  """
+  id: ID!
+
+  """
+  The user's display name
+  """
+  name: String!
+
+  """
+  The user's email address
+  """
+  email: EmailAddress!
+
+  """
+  The user's age
+  """
+  age: Int
+
+  """
+  The user's age
+  """
+  role: Role
+}
+
+type Contact implements HasEmail {
+  email: EmailAddress!
+}
+
+"""
+A blog post
+"""
+type Post {
+  """
+  The unique identifier for the post
+  """
+  id: ID!
+
+  """
+  The post title
+  """
+  title: String!
+
+  """
+  The post content
+  """
+  content: String!
+
+  """
+  The author of the post
+  """
+  author: User!
+}
+
+"""
+User role enumeration
+"""
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+
+"""
+Root query type
+"""
+type Query {
+  """
+  Get a user by ID
+  """
+  user(id: ID!): User
+
+  """
+  Get all users
+  """
+  users: [User!]!
+
+  """
+  Get a post by ID
+  """
+  post(id: ID!): Post
+
+  """
+  Get recent posts
+  """
+  posts(limit: Int = 10): [Post!]!
+
+  """
+  Get a user or post by ID
+  """
+  userOrPost(id: ID!): UserOrPost
+}
+
+type Mutation {
+  upsertUser(userInfo: UserInfo!): User!
+}
+
+type Subscription {
+  watchUser(id: ID!): User
+}
