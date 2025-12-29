@@ -17,7 +17,7 @@ package struct SchemaGenerator {
         /// Build a GraphQL schema with the provided resolvers
         public func buildGraphQLSchema<Resolvers: ResolversProtocol>(
             resolvers: Resolvers.Type,
-            decoder: MapDecoder = .init(),
+            decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {
         """
 
@@ -203,20 +203,20 @@ package struct SchemaGenerator {
         var output = """
 
         let \(varName) = try GraphQLEnumType(
-            name: "\(type.name)",
+            name: "\(type.name)"
         """
 
         if let description = type.description {
             output += """
-
+            ,
                 description: \"\"\"
                 \(description.indent(1, includeFirst: false))
-                \"\"\",
+                \"\"\"
             """
         }
 
         output += """
-
+        ,
             values: [
         """
 
@@ -262,15 +262,15 @@ package struct SchemaGenerator {
 
         var output = """
         let \(varName) = try GraphQLInputObjectType(
-            name: "\(type.name)",
+            name: "\(type.name)"
         """
 
         if let description = type.description {
             output += """
-
+            ,
                 description: \"\"\"
                 \(description)
-                \"\"\",
+                \"\"\"
             """
         }
 
@@ -297,27 +297,27 @@ package struct SchemaGenerator {
             output += try """
 
                     "\(fieldName)": InputObjectField(
-                        type: \(graphQLTypeReference(for: field.type)),
+                        type: \(graphQLTypeReference(for: field.type))
             """
 
             if let defaultValue = field.defaultValue {
                 output += """
-
-                            defaultValue: \(mapToSwiftCode(defaultValue)),
+                ,
+                            defaultValue: \(mapToSwiftCode(defaultValue))
                 """
             }
 
             if let description = field.description {
                 output += """
-
+                ,
                             description: \"\"\"
                             \(description)
-                            \"\"\",
+                            \"\"\"
                 """
             }
             if let deprecationReason = field.deprecationReason {
                 output += """
-
+                ,
                             deprecationReason: \"\"\"
                             \(deprecationReason)
                             \"\"\"
@@ -344,12 +344,12 @@ package struct SchemaGenerator {
 
         var output = """
         let \(varName) = try GraphQLInterfaceType(
-            name: "\(type.name)",
+            name: "\(type.name)"
         """
 
         if let description = type.description {
             output += """
-
+            ,
                 description: \"\"\"
                 \(description)
                 \"\"\",
@@ -425,15 +425,15 @@ package struct SchemaGenerator {
 
         var output = """
         let \(varName) = try GraphQLObjectType(
-            name: "\(type.name)",
+            name: "\(type.name)"
         """
 
         if let description = type.description {
             output += """
-
+            ,
                 description: \"\"\"
                 \(description)
-                \"\"\",
+                \"\"\"
             """
         }
 
@@ -605,31 +605,31 @@ package struct SchemaGenerator {
         var output = try """
 
         "\(fieldName)": GraphQLField(
-            type: \(graphQLTypeReference(for: field.type)),
+            type: \(graphQLTypeReference(for: field.type))
         """
 
         if let description = field.description {
             output += """
-
+            ,
                 description: \"\"\"
                 \(description)
-                \"\"\",
+                \"\"\"
             """
         }
 
         if let deprecationReason = field.deprecationReason {
             output += """
-
+            ,
                 deprecationReason: \"\"\"
                 \(deprecationReason)
-                \"\"\",
+                \"\"\"
             """
         }
 
         // Add arguments if any
         if !field.args.isEmpty {
             output += """
-
+            ,
                 args: [
             """
 
@@ -664,12 +664,12 @@ package struct SchemaGenerator {
 
             output += """
 
-                ],
+                ]
             """
         }
 
         output += try"""
-
+        ,
         \(generateResolverCallback(
             fieldName: fieldName,
             field: field,

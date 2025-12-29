@@ -45,13 +45,13 @@ struct SchemaGeneratorTests {
         /// Build a GraphQL schema with the provided resolvers
         public func buildGraphQLSchema<Resolvers: ResolversProtocol>(
             resolvers: Resolvers.Type,
-            decoder: MapDecoder = .init(),
+            decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {
             let bar = try GraphQLObjectType(
                 name: "Bar",
                 description: """
                 bar
-                """,
+                """
             )
             bar.fields = {
                 [
