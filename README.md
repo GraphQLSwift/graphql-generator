@@ -2,21 +2,17 @@
 
 # GraphQL Generator for Swift
 
-A Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema).
-
-This tool uses [GraphQL Swift](https://github.com/GraphQLSwift/GraphQL) to generate type-safe Swift code and protocol stubs from your GraphQL schema files, eliminating boilerplate while allowing you full control over your business logic.
+A Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema) and [Swift's OpenAPI Generator](https://github.com/apple/swift-openapi-generator).
 
 ## Features
 
-- **Build-time code generation**: Code is generated at build time and never needs to be committed
+- **Build-time code generation**: Code is generated at build time and doesn't need to be committed
 - **Type-safe**: Leverages Swift's type system for compile-time safety
-- **Framework-agnostic**: Generated code works with any Swift server framework (Vapor, Hummingbird, etc.)
-- **Modern Swift**: Uses async/await for all resolver functions
-- **Minimal boilerplate**: Generates only ceremony code - you write the business logic
+- **Minimal boilerplate**: Generates all GraphQL definition code - you write the business logic
 
 ## Installation
 
-Add the package to your `Package.swift`:
+Add the package to your `Package.swift`. Be sure to add the `GraphQLGeneratorRuntime` dependency to your package, and add the `GraphQLGeneratorPlugin` to the plugins section:
 
 ```swift
 dependencies: [
@@ -78,10 +74,11 @@ Create a resolvers struct with the required typealiases:
 struct Resolvers: ResolversProtocol {
     typealias Query = ExamplePackage.Query
     typealias Mutation = ExamplePackage.Mutation
+    typealias Subscription = ExamplePackage.Subscription
 }
 ```
 
-As you build the `Query` and `Mutation` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL result, according to its generated protocol:
+As you build the `Query`, `Mutation`, and `Subscription` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL result, according to its generated protocol:
 
 ```swift
 struct Query: QueryProtocol {
@@ -218,9 +215,9 @@ public struct EmailAddress: Scalar {
 ## Development Roadmap
 
 1. Directives: Directives are currently not supported
-2. Subscription: Subscription definitions are currently ignored
-3. Improved testing: Generator tests should cover much more of the functionality
-4. Additional examples: Ideally large ones that cover significant GraphQL features
+2. Improved testing: Generator tests should cover much more of the functionality
+3. Additional examples: Ideally large ones that cover significant GraphQL features
+4. Enhanced configuration: There should be configuration options for the build plugin itself
 5. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
 
 ## Contributing

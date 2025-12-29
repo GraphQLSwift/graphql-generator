@@ -17,7 +17,6 @@ package struct TypeGenerator {
         """
 
         // Generate ResolversProtocol
-
         output += """
 
         public protocol ResolversProtocol: Sendable {
