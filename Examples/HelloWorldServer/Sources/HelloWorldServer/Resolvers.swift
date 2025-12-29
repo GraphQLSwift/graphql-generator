@@ -7,6 +7,7 @@ public class Context: @unchecked Sendable {
     // User can choose structure
     var users: [String: User]
     var posts: [String: Post]
+    var onTriggerWatch: () -> Void = {}
 
     init(
         users: [String: User],
@@ -14,6 +15,10 @@ public class Context: @unchecked Sendable {
     ) {
         self.users = users
         self.posts = posts
+    }
+
+    func triggerWatch() {
+        onTriggerWatch()
     }
 }
 // Scalars must be represented by a Swift type of the same name, conforming to the Scalar protocol
@@ -59,6 +64,7 @@ public struct EmailAddress: Scalar {
 struct Resolvers: ResolversProtocol {
     typealias Query = HelloWorldServer.Query
     typealias Mutation = HelloWorldServer.Mutation
+    typealias Subscription = HelloWorldServer.Subscription
 }
 struct User: UserProtocol {
     // User can choose structure
@@ -147,5 +153,16 @@ struct Mutation: MutationProtocol {
         )
         context.users[userInfo.id] = user
         return user
+    }
+}
+
+struct Subscription: SubscriptionProtocol {
+    // Required implementations
+    static func watchUser(id: String, context: Context, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<(any UserProtocol)?> {
+        return AsyncStream<(any UserProtocol)?> { continuation in
+            context.onTriggerWatch = { [weak context] in
+                continuation.yield(context?.users[id])
+            }
+        }.any()
     }
 }

@@ -127,7 +127,7 @@ struct TypeGeneratorTests {
         )
     }
 
-    @Test func rootType() async throws {
+    @Test func queryType() async throws {
         let bar = try GraphQLObjectType(
             name: "Bar",
             description: "bar",
@@ -161,6 +161,35 @@ struct TypeGeneratorTests {
 
                 /// bar
                 static func bar(context: Context, info: GraphQLResolveInfo) async throws -> (any BarProtocol)?
+
+            }
+            """
+        )
+    }
+
+
+    @Test func subscriptionType() async throws {
+        let subscription = try GraphQLObjectType(
+            name: "Subscription",
+            fields: [
+                "watchThis": .init(
+                    type: GraphQLString,
+                    description: "foo",
+                    args: [
+                        "id": .init(
+                            type: GraphQLString,
+                        )
+                    ]
+                )
+            ]
+        )
+        let actual = try TypeGenerator().generateRootTypeProtocol(for: subscription)
+        #expect(
+            actual == """
+
+            public protocol SubscriptionProtocol: Sendable {
+                /// foo
+                static func watchThis(id: String?, context: Context, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<String?>
 
             }
             """

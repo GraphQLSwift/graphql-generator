@@ -86,4 +86,59 @@ struct HelloWorldServerTests {
         )
         #expect(actual == expected)
     }
+
+    @Test func subscription() async throws {
+        let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
+        let context = Context(
+            users: ["1" : .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
+            posts: [:]
+        )
+        let stream = try await graphqlSubscribe(
+            schema: schema,
+            request: """
+            subscription {
+                watchUser(id: "1") {
+                    id
+                    name
+                    email
+                    age
+                    role
+                }
+            }
+            """,
+            context: context
+        ).get()
+
+        var iterator = stream.makeAsyncIterator()
+
+        context.triggerWatch()
+        #expect(
+            try await iterator.next() == GraphQLResult(
+                data: [
+                    "watchUser": [
+                        "id": "1",
+                        "name": "John",
+                        "email": "john@example.com",
+                        "age": 18,
+                        "role": "USER"
+                    ]
+                ]
+            )
+        )
+
+        context.triggerWatch()
+        #expect(
+            try await iterator.next() == GraphQLResult(
+                data: [
+                    "watchUser": [
+                        "id": "1",
+                        "name": "John",
+                        "email": "john@example.com",
+                        "age": 18,
+                        "role": "USER"
+                    ]
+                ]
+            )
+        )
+    }
 }

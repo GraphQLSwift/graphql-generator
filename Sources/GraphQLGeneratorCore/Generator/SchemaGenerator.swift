@@ -123,7 +123,7 @@ package struct SchemaGenerator {
         if let queryType = schema.queryType {
             output += """
 
-            \(try generateQueryTypeDefinition(for: queryType).indent(1))
+            \(try generateRootTypeDefinition(for: queryType, rootType: .query).indent(1))
             """
         }
 
@@ -131,7 +131,15 @@ package struct SchemaGenerator {
         if let mutationType = schema.mutationType {
             output += """
 
-            \(try generateMutationTypeDefinition(for: mutationType).indent(1))
+            \(try generateRootTypeDefinition(for: mutationType, rootType: .mutation).indent(1))
+            """
+        }
+
+        // Generate Subscription type if it exists
+        if let subscriptionType = schema.subscriptionType {
+            output += """
+
+            \(try generateRootTypeDefinition(for: subscriptionType, rootType: .subscription).indent(1))
             """
         }
 
@@ -148,6 +156,13 @@ package struct SchemaGenerator {
             output += """
             ,
                     mutation: mutation
+            """
+        }
+
+        if schema.subscriptionType != nil {
+            output += """
+            ,
+                    subscription: subscription
             """
         }
 
@@ -524,11 +539,25 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateQueryTypeDefinition(for type: GraphQLObjectType) throws -> String {
+    private func generateRootTypeDefinition(for type: GraphQLObjectType, rootType: RootType) throws -> String {
+        let variableName: String
+        let target: ResolverTarget
+        switch rootType {
+            case .query:
+                variableName = "query"
+                target = .query
+            case .mutation:
+                variableName = "mutation"
+                target = .mutation
+            case .subscription:
+                variableName = "subscription"
+                target = .subscription
+        }
+
         var output = """
 
-        let query = try GraphQLObjectType(
-            name: "Query",
+        let \(variableName) = try GraphQLObjectType(
+            name: "\(type.name)",
         """
 
         if let description = type.description {
@@ -553,51 +582,7 @@ package struct SchemaGenerator {
             \(try generateFieldDefinition(
                 fieldName: fieldName,
                 field: field,
-                target: .query,
-                parentType: type
-            ).indent(2))
-            """
-        }
-
-        output += """
-
-            ]
-        )
-        """
-
-        return output
-    }
-
-    private func generateMutationTypeDefinition(for type: GraphQLObjectType) throws -> String {
-        var output = """
-
-        let mutation = try GraphQLObjectType(
-            name: "Mutation",
-        """
-
-        if let description = type.description {
-            output += """
-
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\",
-            """
-        }
-
-        output += """
-
-            fields: [
-        """
-
-        // Generate fields
-        let fields = try type.fields()
-        for (fieldName, field) in fields {
-            output += """
-
-            \(try generateFieldDefinition(
-                fieldName: fieldName,
-                field: field,
-                target: .mutation,
+                target: target,
                 parentType: type
             ).indent(2))
             """
@@ -616,7 +601,7 @@ package struct SchemaGenerator {
         fieldName: String,
         field: GraphQLField,
         target: ResolverTarget,
-        parentType: GraphQLType
+        parentType: GraphQLNamedType
     ) throws -> String {
         var output = """
 
@@ -704,10 +689,23 @@ package struct SchemaGenerator {
         target: ResolverTarget,
         parentType: GraphQLType
     ) throws -> String {
-        var output = """
+        var output = ""
 
-        resolve: { source, args, context, info in
-        """
+        if target == .subscription {
+            output += """
+
+            resolve: { source, _, _, _ in
+                return source
+            },
+            subscribe: { source, args, context, info in
+            """
+        } else {
+            output += """
+
+            resolve: { source, args, context, info in
+            """
+        }
+
 
         // Build argument list
         var argsList: [String] = []
@@ -754,7 +752,8 @@ package struct SchemaGenerator {
         let targetName = switch target {
             case .parent: "parent"
             case .query: "Resolvers.Query"
-            case .mutation:  "Resolvers.Mutation"
+            case .mutation: "Resolvers.Mutation"
+            case .subscription: "Resolvers.Subscription"
         }
         let functionName = nameGenerator.swiftMemberName(for: fieldName)
         output += """
@@ -796,9 +795,16 @@ package struct SchemaGenerator {
         throw GeneratorError.unsupportedType("Unknown type: \(type)")
     }
 
+    private enum RootType {
+        case query
+        case mutation
+        case subscription
+    }
+
     private enum ResolverTarget {
         case parent
         case query
         case mutation
+        case subscription
     }
 }

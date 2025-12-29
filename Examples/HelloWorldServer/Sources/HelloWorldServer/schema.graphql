@@ -118,3 +118,7 @@ type Query {
 type Mutation {
   upsertUser(userInfo: UserInfo!): User!
 }
+
+type Subscription {
+  watchUser(id: ID!): User
+}

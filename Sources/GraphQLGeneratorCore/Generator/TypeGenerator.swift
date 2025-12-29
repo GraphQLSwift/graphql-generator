@@ -12,6 +12,8 @@ package struct TypeGenerator {
 
         import Foundation
         import GraphQL
+        import GraphQLGeneratorRuntime
+
         """
 
         // Generate ResolversProtocol
@@ -30,6 +32,12 @@ package struct TypeGenerator {
             output += """
 
                 associatedtype Mutation: MutationProtocol
+            """
+        }
+        if schema.subscriptionType != nil {
+            output += """
+
+                associatedtype Subscription: SubscriptionProtocol
             """
         }
         output += """
@@ -138,7 +146,13 @@ package struct TypeGenerator {
             """
         }
 
-        // TODO: Add subscription types
+        // Generate Mutation type
+        if let subscriptionType = schema.subscriptionType {
+            output += """
+
+            \(try generateRootTypeProtocol(for: subscriptionType))
+            """
+        }
 
         return output
     }
@@ -387,7 +401,10 @@ package struct TypeGenerator {
                 """
             }
 
-            let returnType = try swiftTypeReference(for: field.type, nameGenerator: nameGenerator)
+            var returnType = try swiftTypeReference(for: field.type, nameGenerator: nameGenerator)
+            if type.name == "Subscription" {
+                returnType = "AnyAsyncSequence<\(returnType)>"
+            }
 
             var params: [String] = []
 
