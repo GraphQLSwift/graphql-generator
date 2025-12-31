@@ -15,7 +15,7 @@ package struct SchemaGenerator {
         import GraphQLGeneratorRuntime
 
         /// Build a GraphQL schema with the provided resolvers
-        public func buildGraphQLSchema<Resolvers: ResolversProtocol>(
+        func buildGraphQLSchema<Resolvers: ResolversProtocol>(
             resolvers: Resolvers.Type,
             decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {

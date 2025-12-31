@@ -19,7 +19,7 @@ package struct TypeGenerator {
         // Generate ResolversProtocol
         output += """
 
-        public protocol ResolversProtocol: Sendable {
+        protocol ResolversProtocol: Sendable {
         """
         if let queryType = schema.queryType {
             output += """
@@ -89,7 +89,7 @@ package struct TypeGenerator {
             let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
             output += """
 
-            public protocol \(swiftTypeName): Sendable {}
+            protocol \(swiftTypeName): Sendable {}
             """
 
             // Record which types need to be conformed
@@ -170,7 +170,7 @@ package struct TypeGenerator {
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
         output += """
 
-        public enum \(swiftTypeName): String, Codable, Sendable {
+        enum \(swiftTypeName): String, Codable, Sendable {
         """
 
         // Generate cases
@@ -209,7 +209,7 @@ package struct TypeGenerator {
         }
 
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
-        output += "public struct \(swiftTypeName): Codable, Sendable {\n"
+        output += "struct \(swiftTypeName): Codable, Sendable {\n"
 
         // Generate properties
         let fields = try type.fields()
@@ -225,7 +225,7 @@ package struct TypeGenerator {
 
             output += """
 
-                public let \(nameGenerator.swiftMemberName(for: fieldName)): \(returnType)
+                let \(nameGenerator.swiftMemberName(for: fieldName)): \(returnType)
             """
         }
 
@@ -256,7 +256,7 @@ package struct TypeGenerator {
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
         output += """
 
-        public protocol \(swiftTypeName): \(interfaces)Sendable {
+        protocol \(swiftTypeName): \(interfaces)Sendable {
         """
 
         // Generate properties
@@ -324,7 +324,7 @@ package struct TypeGenerator {
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
         output += """
 
-        public protocol \(swiftTypeName): \(unions)\(interfaces)Sendable {
+        protocol \(swiftTypeName): \(unions)\(interfaces)Sendable {
         """
 
         // Generate properties
@@ -386,7 +386,7 @@ package struct TypeGenerator {
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
         output += """
 
-        public protocol \(swiftTypeName): Sendable {
+        protocol \(swiftTypeName): Sendable {
         """
 
         // Generate properties

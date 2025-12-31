@@ -25,7 +25,7 @@ struct TypeGeneratorTests {
             actual == """
 
             /// foo
-            public enum Foo: String, Codable, Sendable {
+            enum Foo: String, Codable, Sendable {
                 /// foo
                 case foo = "foo"
                 /// bar
@@ -62,7 +62,7 @@ struct TypeGeneratorTests {
             actual == """
 
             /// B
-            public protocol BInterface: AInterface, Sendable {
+            protocol BInterface: AInterface, Sendable {
                 /// foo
                 func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
 
@@ -115,7 +115,7 @@ struct TypeGeneratorTests {
             actual == """
 
             /// Foo
-            public protocol FooProtocol: XUnion, AInterface, Sendable {
+            protocol FooProtocol: XUnion, AInterface, Sendable {
                 /// foo
                 func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
 
@@ -155,7 +155,7 @@ struct TypeGeneratorTests {
         #expect(
             actual == """
 
-            public protocol QueryProtocol: Sendable {
+            protocol QueryProtocol: Sendable {
                 /// foo
                 static func foo(context: Context, info: GraphQLResolveInfo) async throws -> String?
 
@@ -186,7 +186,7 @@ struct TypeGeneratorTests {
         #expect(
             actual == """
 
-            public protocol SubscriptionProtocol: Sendable {
+            protocol SubscriptionProtocol: Sendable {
                 /// foo
                 static func watchThis(id: String?, context: Context, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<String?>
 
