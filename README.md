@@ -214,11 +214,10 @@ public struct EmailAddress: Scalar {
 
 ## Development Roadmap
 
-1. Directives: Directives are currently not supported
-2. Improved testing: Generator tests should cover much more of the functionality
-3. Additional examples: Ideally large ones that cover significant GraphQL features
-4. Enhanced configuration: There should be configuration options for the build plugin itself
-5. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
+1. Generated Object namespacing: Especially for Input types, which are commonly suffixed with `Input`, creating `XInputInput` structs. Also, we should minimize interference with the user's namespace as much as possible.
+2. Directives: Directives are currently not supported
+3. Enhanced configuration: There should be configuration options for the build plugin itself
+4. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
 
 ## Contributing
 
