@@ -209,7 +209,10 @@ package struct TypeGenerator {
         }
 
         let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
-        output += "struct \(swiftTypeName): Codable, Sendable {\n"
+        output += """
+
+        struct \(swiftTypeName): Codable, Sendable {
+        """
 
         // Generate properties
         let fields = try type.fields()
