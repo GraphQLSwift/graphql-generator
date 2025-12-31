@@ -269,7 +269,7 @@ package struct SchemaGenerator {
             output += """
             ,
                 description: \"\"\"
-                \(description)
+                \(description.indent(1, includeFirst: false))
                 \"\"\"
             """
         }
@@ -311,7 +311,7 @@ package struct SchemaGenerator {
                 output += """
                 ,
                             description: \"\"\"
-                            \(description)
+                            \(description.indent(3, includeFirst: false))
                             \"\"\"
                 """
             }
@@ -319,7 +319,7 @@ package struct SchemaGenerator {
                 output += """
                 ,
                             deprecationReason: \"\"\"
-                            \(deprecationReason)
+                            \(deprecationReason.indent(3, includeFirst: false))
                             \"\"\"
                 """
             }
@@ -351,7 +351,7 @@ package struct SchemaGenerator {
             output += """
             ,
                 description: \"\"\"
-                \(description)
+                \(description.indent(1, includeFirst: false))
                 \"\"\",
             """
         }
@@ -432,7 +432,7 @@ package struct SchemaGenerator {
             output += """
             ,
                 description: \"\"\"
-                \(description)
+                \(description.indent(1, includeFirst: false))
                 \"\"\"
             """
         }
@@ -505,20 +505,20 @@ package struct SchemaGenerator {
 
         var output = """
         let \(varName) = try GraphQLUnionType(
-            name: "\(type.name)",
+            name: "\(type.name)"
         """
 
         if let description = type.description {
             output += """
-
+            ,
                 description: \"\"\"
-                \(description)
-                \"\"\",
+                \(description.indent(1, includeFirst: false))
+                \"\"\"
             """
         }
 
         output += """
-
+        ,
             types: [
         """
         for type in try type.types() {
@@ -612,7 +612,7 @@ package struct SchemaGenerator {
             output += """
             ,
                 description: \"\"\"
-                \(description)
+                \(description.indent(1, includeFirst: false))
                 \"\"\"
             """
         }
@@ -621,7 +621,7 @@ package struct SchemaGenerator {
             output += """
             ,
                 deprecationReason: \"\"\"
-                \(deprecationReason)
+                \(deprecationReason.indent(1, includeFirst: false))
                 \"\"\"
             """
         }
@@ -644,7 +644,7 @@ package struct SchemaGenerator {
                     output += """
                     ,
                                 description: \"\"\"
-                                \(description)
+                                \(description.indent(3, includeFirst: false))
                                 \"\"\"
                     """
                 }

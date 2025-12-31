@@ -83,7 +83,7 @@ package struct TypeGenerator {
             if let description = type.description {
                 output += """
 
-                /// \(description)
+                \(description.docComment())
                 """
             }
             let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
@@ -163,7 +163,7 @@ package struct TypeGenerator {
         if let description = type.description {
             output += """
 
-            /// \(description)
+            \(description.docComment())
             """
         }
 
@@ -178,7 +178,7 @@ package struct TypeGenerator {
             if let description = value.description {
                 output += """
 
-                    /// \(description)
+                    \(description.docComment().indent(1, includeFirst: false))
                 """
             }
             // Use safe name generator for case names
@@ -204,7 +204,7 @@ package struct TypeGenerator {
         if let description = type.description {
             output += """
 
-            /// \(description)
+            \(description.docComment())
             """
         }
 
@@ -217,7 +217,7 @@ package struct TypeGenerator {
             if let description = field.description {
                 output += """
 
-                    /// \(description)
+                    \(description.docComment().indent(1, includeFirst: false))
                 """
             }
 
@@ -245,7 +245,7 @@ package struct TypeGenerator {
         if let description = type.description {
             output += """
 
-            /// \(description)
+            \(description.docComment())
             """
         }
 
@@ -265,7 +265,7 @@ package struct TypeGenerator {
             if let description = field.description {
                 output += """
 
-                    /// \(description)
+                    \(description.docComment().indent(1, includeFirst: false))
                 """
             }
 
@@ -309,7 +309,7 @@ package struct TypeGenerator {
         if let description = type.description {
             output += """
 
-            /// \(description)
+            \(description.docComment())
             """
         }
 
@@ -333,7 +333,7 @@ package struct TypeGenerator {
             if let description = field.description {
                 output += """
 
-                    /// \(description)
+                    \(description.docComment().indent(1, includeFirst: false))
                 """
             }
 
@@ -379,7 +379,7 @@ package struct TypeGenerator {
         if let description = type.description {
             output += """
 
-            /// \(description)
+            \(description.docComment())
             """
         }
 
@@ -395,7 +395,7 @@ package struct TypeGenerator {
             if let description = field.description {
                 output += """
 
-                    /// \(description)
+                    \(description.docComment().indent(1, includeFirst: false))
                 """
             }
 
