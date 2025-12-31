@@ -59,7 +59,7 @@ let package = Package(
 
         // Tests
         .testTarget(
-            name: "GraphQLGeneratorTests",
+            name: "GraphQLGeneratorCoreTests",
             dependencies: [
                 "GraphQLGeneratorCore",
             ]
