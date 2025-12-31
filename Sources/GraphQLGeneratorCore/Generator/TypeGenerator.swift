@@ -280,7 +280,7 @@ package struct TypeGenerator {
             }
 
             // Add context parameter
-            params.append("context: Context")
+            params.append("context: GraphQLContext")
 
             // Add resolve info parameter
             params.append("info: GraphQLResolveInfo")
@@ -348,7 +348,7 @@ package struct TypeGenerator {
             }
 
             // Add context parameter
-            params.append("context: Context")
+            params.append("context: GraphQLContext")
 
             // Add resolve info parameter
             params.append("info: GraphQLResolveInfo")
@@ -413,7 +413,7 @@ package struct TypeGenerator {
             }
 
             // Add context parameter
-            params.append("context: Context")
+            params.append("context: GraphQLContext")
 
             // Add resolve info parameter
             params.append("info: GraphQLResolveInfo")

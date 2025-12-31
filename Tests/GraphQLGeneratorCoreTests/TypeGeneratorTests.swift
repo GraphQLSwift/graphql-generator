@@ -64,10 +64,10 @@ struct TypeGeneratorTests {
             /// B
             protocol BInterface: AInterface, Sendable {
                 /// foo
-                func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+                func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 
                 /// baz
-                func baz(context: Context, info: GraphQLResolveInfo) async throws -> String?
+                func baz(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
 
             }
             """
@@ -117,10 +117,10 @@ struct TypeGeneratorTests {
             /// Foo
             protocol FooProtocol: XUnion, AInterface, Sendable {
                 /// foo
-                func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+                func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 
                 /// bar
-                func bar(foo: String, bar: String?, context: Context, info: GraphQLResolveInfo) async throws -> String?
+                func bar(foo: String, bar: String?, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
 
             }
             """
@@ -157,10 +157,10 @@ struct TypeGeneratorTests {
 
             protocol QueryProtocol: Sendable {
                 /// foo
-                static func foo(context: Context, info: GraphQLResolveInfo) async throws -> String?
+                static func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
 
                 /// bar
-                static func bar(context: Context, info: GraphQLResolveInfo) async throws -> (any BarProtocol)?
+                static func bar(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any BarProtocol)?
 
             }
             """
@@ -188,7 +188,7 @@ struct TypeGeneratorTests {
 
             protocol SubscriptionProtocol: Sendable {
                 /// foo
-                static func watchThis(id: String?, context: Context, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<String?>
+                static func watchThis(id: String?, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<String?>
 
             }
             """

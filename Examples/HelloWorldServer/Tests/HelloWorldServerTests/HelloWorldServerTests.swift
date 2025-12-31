@@ -7,7 +7,7 @@ import Testing
 struct HelloWorldServerTests {
     @Test func query() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
-        let context = Context(
+        let context = GraphQLContext(
             users: ["1": .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
             posts: ["1": .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
         )
@@ -54,7 +54,7 @@ struct HelloWorldServerTests {
 
     @Test func mutation() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
-        let context = Context(
+        let context = GraphQLContext(
             users: [:],
             posts: [:]
         )
@@ -89,7 +89,7 @@ struct HelloWorldServerTests {
 
     @Test func subscription() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
-        let context = Context(
+        let context = GraphQLContext(
             users: ["1": .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
             posts: [:]
         )

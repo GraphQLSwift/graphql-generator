@@ -59,10 +59,10 @@ When you build, the plugin will automatically generate Swift code:
 
 ### 3. Create required types
 
-Create a type named `Context`:
+Create a type named `GraphQLContext`:
 
 ```swift
-public actor Context {
+public actor GraphQLContext {
     // Add any features you like
 }
 ```
@@ -83,7 +83,7 @@ As you build the `Query`, `Mutation`, and `Subscription` types and their resolut
 ```swift
 struct Query: QueryProtocol {
     // This is required by `QueryProtocol`, and used by GraphQL query resolution.
-    static func user(context: Context, info: GraphQLResolveInfo) async throws -> (any UserProtocol)? {
+    static func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any UserProtocol)? {
         // You can implement resolution logic however you like.
         return context.user
     }
@@ -95,10 +95,10 @@ struct User: UserProtocol {
     let email: String
 
     // These are required by `UserProtocol`, and used by GraphQL field resolution.
-    func name(context: Context, info: GraphQLResolveInfo) async throws -> String {
+    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return name
     }
-    func email(context: Context, info: GraphQLResolveInfo) async throws -> EmailAddress {
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> EmailAddress {
         // You can implement resolution logic however you like.
         return EmailAddress(email: self.email)
     }
@@ -135,7 +135,7 @@ type A {
 This would result in the following protocol:
 ```swift
 public protocol AProtocol: Sendable {
-    func foo(context: Context, info: GraphQLResolveInfo) async throws -> String
+    func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 }
 ```
 
@@ -143,12 +143,12 @@ You could define two conforming types. To use `ATest` in tests, simply return it
 ```swift
 struct A: AProtocol {
     let foo: String
-    func foo(context: Context, info: GraphQLResolveInfo) async throws -> String {
+    func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return foo
     }
 }
 struct ATest: AProtocol {
-    func foo(context: Context, info: GraphQLResolveInfo) async throws -> String {
+    func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return "test"
     }
 }

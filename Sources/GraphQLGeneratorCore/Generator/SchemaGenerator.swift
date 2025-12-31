@@ -739,7 +739,7 @@ package struct SchemaGenerator {
         // Add context
         output += """
 
-            let context = try cast(context, to: Context.self)
+            let context = try cast(context, to: GraphQLContext.self)
         """
         argsList.append("context: context")
 
