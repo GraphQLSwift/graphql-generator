@@ -176,7 +176,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateScalarTypeDefinition(for type: GraphQLScalarType) throws -> String {
+    func generateScalarTypeDefinition(for type: GraphQLScalarType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         // We expect the user to define a type of the same name that conforms to provided "Scalar" protocol
@@ -197,7 +197,7 @@ package struct SchemaGenerator {
         """
     }
 
-    private func generateEnumTypeDefinition(for type: GraphQLEnumType) throws -> String {
+    func generateEnumTypeDefinition(for type: GraphQLEnumType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -257,7 +257,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateInputTypeDefinition(for type: GraphQLInputObjectType) throws -> String {
+    func generateInputTypeDefinition(for type: GraphQLInputObjectType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -283,7 +283,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateInputTypeFieldDefinition(for type: GraphQLInputObjectType) throws -> String {
+    func generateInputTypeFieldDefinition(for type: GraphQLInputObjectType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -339,7 +339,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateInterfaceTypeDefinition(for type: GraphQLInterfaceType, resolvers _: String) throws -> String {
+    func generateInterfaceTypeDefinition(for type: GraphQLInterfaceType, resolvers _: String) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -366,7 +366,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateInterfaceTypeFieldDefinition(for type: GraphQLInterfaceType) throws -> String {
+    func generateInterfaceTypeFieldDefinition(for type: GraphQLInterfaceType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -420,7 +420,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateObjectTypeDefinition(for type: GraphQLObjectType) throws -> String {
+    func generateObjectTypeDefinition(for type: GraphQLObjectType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -446,7 +446,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateObjectTypeFieldDefinition(for type: GraphQLObjectType, resolvers _: String) throws -> String {
+    func generateObjectTypeFieldDefinition(for type: GraphQLObjectType, resolvers _: String) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -500,7 +500,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateUnionTypeDefinition(for type: GraphQLUnionType) throws -> String {
+    func generateUnionTypeDefinition(for type: GraphQLUnionType) throws -> String {
         let varName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
@@ -538,7 +538,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateRootTypeDefinition(for type: GraphQLObjectType, rootType: RootType) throws -> String {
+    func generateRootTypeDefinition(for type: GraphQLObjectType, rootType: RootType) throws -> String {
         let variableName: String
         let target: ResolverTarget
         switch rootType {
@@ -596,7 +596,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateFieldDefinition(
+    func generateFieldDefinition(
         fieldName: String,
         field: GraphQLField,
         target: ResolverTarget,
@@ -682,7 +682,7 @@ package struct SchemaGenerator {
         return output
     }
 
-    private func generateResolverCallback(
+    func generateResolverCallback(
         fieldName: String,
         field: GraphQLField,
         target: ResolverTarget,
@@ -764,7 +764,7 @@ package struct SchemaGenerator {
     }
 
     /// Generate GraphQL type reference string (e.g., "GraphQLString", "GraphQLNonNull(GraphQLString)")
-    private func graphQLTypeReference(for type: GraphQLType) throws -> String {
+    func graphQLTypeReference(for type: GraphQLType) throws -> String {
         if let nonNull = type as? GraphQLNonNull {
             return try "GraphQLNonNull(\(graphQLTypeReference(for: nonNull.ofType)))"
         }
@@ -793,13 +793,13 @@ package struct SchemaGenerator {
         throw GeneratorError.unsupportedType("Unknown type: \(type)")
     }
 
-    private enum RootType {
+    enum RootType {
         case query
         case mutation
         case subscription
     }
 
-    private enum ResolverTarget {
+    enum ResolverTarget {
         case parent
         case query
         case mutation
