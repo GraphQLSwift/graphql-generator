@@ -21,22 +21,22 @@ package struct TypeGenerator {
 
         public protocol ResolversProtocol: Sendable {
         """
-        if schema.queryType != nil {
+        if let queryType = schema.queryType {
             output += """
 
-                associatedtype Query: QueryProtocol
+                associatedtype Query: \(try swiftTypeDeclaration(for: queryType, nameGenerator: nameGenerator))
             """
         }
-        if schema.mutationType != nil {
+        if let mutationType = schema.mutationType {
             output += """
 
-                associatedtype Mutation: MutationProtocol
+                associatedtype Mutation: \(try swiftTypeDeclaration(for: mutationType, nameGenerator: nameGenerator))
             """
         }
-        if schema.subscriptionType != nil {
+        if let subscriptionType = schema.subscriptionType {
             output += """
 
-                associatedtype Subscription: SubscriptionProtocol
+                associatedtype Subscription: \(try swiftTypeDeclaration(for: subscriptionType, nameGenerator: nameGenerator))
             """
         }
         output += """
@@ -118,9 +118,9 @@ package struct TypeGenerator {
             $0 as? GraphQLObjectType
         }.filter {
             // Skip root operation types
-            $0.name != "Query" &&
-                $0.name != "Mutation" &&
-                $0.name != "Subscription"
+            $0.name != schema.queryType?.name &&
+                $0.name != schema.mutationType?.name &&
+                $0.name != schema.subscriptionType?.name
         }
         for type in objectTypes {
             output += try"""

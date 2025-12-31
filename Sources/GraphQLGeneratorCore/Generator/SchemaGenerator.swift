@@ -78,9 +78,9 @@ package struct SchemaGenerator {
             $0 as? GraphQLObjectType
         }.filter {
             // Skip root operation types
-            $0.name != "Query" &&
-                $0.name != "Mutation" &&
-                $0.name != "Subscription"
+            $0.name != schema.queryType?.name &&
+                $0.name != schema.mutationType?.name &&
+                $0.name != schema.subscriptionType?.name
         }
         for objectType in objectTypes {
             output += try"""
