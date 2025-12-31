@@ -643,16 +643,16 @@ package struct SchemaGenerator {
                 if let description = arg.description {
                     output += """
                     ,
-                            description: \"\"\"
-                            \(description)
-                            \"\"\"
+                                description: \"\"\"
+                                \(description)
+                                \"\"\"
                     """
                 }
 
                 if let defaultValue = arg.defaultValue {
                     output += """
                     ,
-                            defaultValue: \(mapToSwiftCode(defaultValue))
+                                defaultValue: \(mapToSwiftCode(defaultValue))
                     """
                 }
 
