@@ -4,8 +4,12 @@ import Testing
 
 @Suite
 struct TypeGeneratorTests {
-    @Test func enumType() async throws {
-        let actual = try TypeGenerator().generateEnum(
+    let generator = TypeGenerator()
+
+    // MARK: - Enum Tests
+
+    @Test func generateEnum() async throws {
+        let actual = try generator.generateEnum(
             for: .init(
                 name: "Foo",
                 description: "foo",
@@ -17,6 +21,9 @@ struct TypeGeneratorTests {
                     "bar": .init(
                         value: .string("bar"),
                         description: "bar"
+                    ),
+                    "baz": .init(
+                        value: .string("baz")
                     ),
                 ]
             )
@@ -30,12 +37,78 @@ struct TypeGeneratorTests {
                 case foo = "foo"
                 /// bar
                 case bar = "bar"
+                case baz = "baz"
             }
             """
         )
     }
 
-    @Test func interfaceType() async throws {
+    @Test func generateInputStruct() throws {
+        let inputType = try GraphQLInputObjectType(
+            name: "CreateUser",
+            description: "Input for creating a new user",
+            fields: [
+                "name": InputObjectField(
+                    type: GraphQLNonNull(GraphQLString),
+                    description: "User's full name"
+                ),
+                "email": InputObjectField(
+                    type: GraphQLNonNull(GraphQLString)
+                ),
+                "age": InputObjectField(
+                    type: GraphQLInt,
+                    description: "User's age"
+                ),
+            ]
+        )
+
+        let result = try generator.generateInputStruct(for: inputType)
+
+        let expected = """
+
+        /// Input for creating a new user
+        struct CreateUserInput: Codable, Sendable {
+            /// User's full name
+            let name: String
+            let email: String
+            /// User's age
+            let age: Int?
+        }
+        """
+
+        #expect(result == expected)
+    }
+
+    @Test func generateInputStructWithRecursiveTypes() throws {
+        let addressInput = try GraphQLInputObjectType(
+            name: "AddressInput"
+        )
+        let personInput = try GraphQLInputObjectType(
+            name: "PersonInput"
+        )
+        personInput.fields = {
+            [
+                "name": InputObjectField(type: GraphQLNonNull(GraphQLString)),
+                "address": InputObjectField(type: addressInput),
+                "friends": InputObjectField(type: GraphQLList(personInput)),
+            ]
+        }
+
+        let result = try generator.generateInputStruct(for: personInput)
+
+        let expected = """
+
+        struct PersonInputInput: Codable, Sendable {
+            let name: String
+            let address: AddressInputInput?
+            let friends: [PersonInputInput]?
+        }
+        """
+
+        #expect(result == expected)
+    }
+
+    @Test func generateInterfaceProtocol() async throws {
         let interfaceA = try GraphQLInterfaceType(
             name: "A",
             description: "A"
@@ -53,7 +126,15 @@ struct TypeGeneratorTests {
                 ),
                 "baz": .init(
                     type: GraphQLString,
-                    description: "baz"
+                    description: "baz",
+                    args: [
+                        "arg1": GraphQLArgument(
+                            type: GraphQLNonNull(GraphQLString)
+                        ),
+                        "arg2": GraphQLArgument(
+                            type: GraphQLInt
+                        ),
+                    ]
                 ),
             ]
         )
@@ -67,14 +148,14 @@ struct TypeGeneratorTests {
                 func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 
                 /// baz
-                func baz(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
+                func baz(arg1: String, arg2: Int?, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
 
             }
             """
         )
     }
 
-    @Test func objectType() async throws {
+    @Test func generateTypeProtocol() async throws {
         let interfaceA = try GraphQLInterfaceType(
             name: "A",
             description: "A"
@@ -92,12 +173,10 @@ struct TypeGeneratorTests {
                     description: "bar",
                     args: [
                         "foo": .init(
-                            type: GraphQLNonNull(GraphQLString),
-                            description: "foo"
+                            type: GraphQLNonNull(GraphQLString)
                         ),
                         "bar": .init(
                             type: GraphQLString,
-                            description: "bar",
                             defaultValue: .string("bar")
                         ),
                     ]
@@ -127,7 +206,7 @@ struct TypeGeneratorTests {
         )
     }
 
-    @Test func queryType() async throws {
+    @Test func generateRootTypeProtocolForQuery() async throws {
         let bar = try GraphQLObjectType(
             name: "Bar",
             description: "bar",
@@ -167,7 +246,49 @@ struct TypeGeneratorTests {
         )
     }
 
-    @Test func subscriptionType() async throws {
+    @Test func generateRootTypeProtocolForMutation() throws {
+        let mutationType: GraphQLObjectType = try GraphQLObjectType(
+            name: "Mutation",
+            description: "Mutations",
+            fields: [
+                "createUser": GraphQLField(
+                    type: GraphQLString,
+                    description: "Create a new user",
+                    args: [
+                        "name": GraphQLArgument(type: GraphQLNonNull(GraphQLString)),
+                        "email": GraphQLArgument(type: GraphQLNonNull(GraphQLString)),
+                    ]
+                ),
+                "deleteUser": GraphQLField(
+                    type: GraphQLBoolean,
+                    description: "Delete a user",
+                    args: [
+                        "id": GraphQLArgument(type: GraphQLNonNull(GraphQLID)),
+                    ]
+                ),
+            ]
+        )
+
+        let result = try generator.generateRootTypeProtocol(for: mutationType)
+
+        let expected = """
+
+        /// Mutations
+        protocol MutationProtocol: Sendable {
+            /// Create a new user
+            static func createUser(name: String, email: String, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
+
+            /// Delete a user
+            static func deleteUser(id: String, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> Bool?
+
+        }
+        """
+
+        #expect(result == expected)
+    }
+
+
+    @Test func generateRootTypeProtocolForSubscription() async throws {
         let subscription = try GraphQLObjectType(
             name: "Subscription",
             fields: [
@@ -182,7 +303,7 @@ struct TypeGeneratorTests {
                 ),
             ]
         )
-        let actual = try TypeGenerator().generateRootTypeProtocol(for: subscription)
+        let actual = try generator.generateRootTypeProtocol(for: subscription)
         #expect(
             actual == """
 
