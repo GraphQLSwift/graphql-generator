@@ -1,9 +1,14 @@
 import GraphQL
 
-/// Convert GraphQL type to Swift type name
-func swiftTypeReference(for type: GraphQLType, nameGenerator: SafeNameGenerator) throws -> String {
+/// Convert GraphQL type to Swift type reference. In particular, this includes the relevant `any`, optional `?`, or array
+/// `[`/`]` in the result.
+/// - Parameters:
+///   - type: The GraphQL Type to generate a reference to
+///   - includeNamespace: Whether to include the `GraphQLGenerated` type namespace in the result
+///   - nameGenerator: The name generator
+func swiftTypeReference(for type: GraphQLType, includeNamespace: Bool, nameGenerator: SafeNameGenerator) throws -> String {
     if let nonNull = type as? GraphQLNonNull {
-        let innerType = try swiftTypeReference(for: nonNull.ofType, nameGenerator: nameGenerator)
+        let innerType = try swiftTypeReference(for: nonNull.ofType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
         // Remove the optional marker if present
         if innerType.hasSuffix("?") {
             if innerType.hasPrefix("(") {
@@ -17,7 +22,7 @@ func swiftTypeReference(for type: GraphQLType, nameGenerator: SafeNameGenerator)
     }
 
     if let list = type as? GraphQLList {
-        let innerType = try swiftTypeReference(for: list.ofType, nameGenerator: nameGenerator)
+        let innerType = try swiftTypeReference(for: list.ofType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
         if innerType.hasSuffix("?") {
             let baseType = String(innerType.dropLast())
             return "[\(baseType)]?"
@@ -26,13 +31,14 @@ func swiftTypeReference(for type: GraphQLType, nameGenerator: SafeNameGenerator)
     }
 
     if let namedType = type as? GraphQLNamedType {
-        let baseName = try swiftTypeDeclaration(for: namedType, nameGenerator: nameGenerator)
+        let baseName = try swiftTypeDeclaration(for: namedType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
+
         // By default, GraphQL fields are nullable, so add "?"
-        if type is GraphQLUnionType || type is GraphQLInterfaceType || type is GraphQLObjectType {
+        if namedType is GraphQLUnionType || namedType is GraphQLInterfaceType || namedType is GraphQLObjectType {
             // These are all interfaces, so we must wrap them in 'any' and parentheses for optionals.
             return "(any \(baseName))?"
-        } else if type is GraphQLScalarType {
-            let swiftScalar = mapScalarType(namedType.name, nameGenerator: nameGenerator)
+        } else if namedType is GraphQLScalarType {
+            let swiftScalar = mapScalarType(namedType.name, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
             return "\(swiftScalar)?"
         }
         return "\(baseName)?"
@@ -41,18 +47,28 @@ func swiftTypeReference(for type: GraphQLType, nameGenerator: SafeNameGenerator)
     throw GeneratorError.unsupportedType("Unknown type: \(type)")
 }
 
-/// Convert GraphQL type to Swift type name
-func swiftTypeDeclaration(for type: GraphQLType, nameGenerator: SafeNameGenerator) throws -> String {
+/// Convert GraphQL type to Swift type declaration name. This will not include modifiers for optionals/lists/etc.
+/// - Parameters:
+///   - type: The GraphQL Type to generate a reference to
+///   - includeNamespace: Whether to include the `GraphQLGenerated` type namespace in the result
+///   - nameGenerator: The name generator
+func swiftTypeDeclaration(for type: GraphQLType, includeNamespace: Bool, nameGenerator: SafeNameGenerator) throws -> String {
     if let nonNull = type as? GraphQLNonNull {
-        return try swiftTypeDeclaration(for: nonNull.ofType, nameGenerator: nameGenerator)
+        // Declarations must be for non-nulls, so just pass through
+        return try swiftTypeDeclaration(for: nonNull.ofType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
     }
 
     if let list = type as? GraphQLList {
-        return try swiftTypeDeclaration(for: list.ofType, nameGenerator: nameGenerator)
+        // Declarations must be for non-lists, so just pass through
+        return try swiftTypeDeclaration(for: list.ofType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
     }
 
     if let namedType = type as? GraphQLNamedType {
-        let baseName = nameGenerator.swiftTypeName(for: namedType.name)
+        var baseName = nameGenerator.swiftTypeName(for: namedType.name)
+        if includeNamespace {
+            baseName = "GraphQLGenerated.\(baseName)"
+        }
+
         if type is GraphQLInputObjectType {
             return "\(baseName)Input"
         } else if type is GraphQLInterfaceType {
@@ -68,8 +84,13 @@ func swiftTypeDeclaration(for type: GraphQLType, nameGenerator: SafeNameGenerato
     throw GeneratorError.unsupportedType("Unknown type: \(type)")
 }
 
-/// Map GraphQL scalar types to Swift types
-func mapScalarType(_ graphQLType: String, nameGenerator: SafeNameGenerator) -> String {
+/// Map GraphQL leaf types to Swift types.
+///
+/// - Parameters:
+///   - graphQLType: The GraphQL Type to generate a reference to
+///   - includeNamespace: Whether to include the `GraphQLGenerated` type namespace in the result
+///   - nameGenerator: The name generator
+func mapScalarType(_ graphQLType: String, includeNamespace: Bool, nameGenerator: SafeNameGenerator) -> String {
     switch graphQLType {
     case "ID": return "String"
     case "String": return "String"
@@ -77,8 +98,12 @@ func mapScalarType(_ graphQLType: String, nameGenerator: SafeNameGenerator) -> S
     case "Float": return "Double"
     case "Boolean": return "Bool"
     default:
-        // For custom types (enums, objects), use safe name generator
-        return nameGenerator.swiftTypeName(for: graphQLType)
+        // For custom scalars, use safe name generator
+        var name = nameGenerator.swiftTypeName(for: graphQLType)
+        if includeNamespace {
+            name = "GraphQLGenerated.\(name)"
+        }
+        return name
     }
 }
 

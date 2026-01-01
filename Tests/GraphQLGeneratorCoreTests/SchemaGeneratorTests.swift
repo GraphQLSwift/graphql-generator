@@ -45,7 +45,7 @@ struct SchemaGeneratorTests {
         import GraphQLGeneratorRuntime
 
         /// Build a GraphQL schema with the provided resolvers
-        func buildGraphQLSchema<Resolvers: ResolversProtocol>(
+        func buildGraphQLSchema<Resolvers: GraphQLGenerated.ResolversProtocol>(
             resolvers: Resolvers.Type,
             decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {
@@ -63,7 +63,7 @@ struct SchemaGeneratorTests {
                         foo
                         """,
                         resolve: { source, args, context, info in
-                            let parent = try cast(source, to: (any BarProtocol).self)
+                            let parent = try cast(source, to: (any GraphQLGenerated.BarProtocol).self)
                             let context = try cast(context, to: GraphQLContext.self)
                             return try await parent.foo(context: context, info: info)
                         }
@@ -304,7 +304,7 @@ struct SchemaGeneratorTests {
                     The ID of the node
                     \"\"\",
                     resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any NodeInterface).self)
+                        let parent = try cast(source, to: (any GraphQLGenerated.NodeInterface).self)
                         let context = try cast(context, to: GraphQLContext.self)
                         return try await parent.id(context: context, info: info)
                     }
@@ -344,7 +344,7 @@ struct SchemaGeneratorTests {
                 "name": GraphQLField(
                     type: GraphQLString,
                     resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any ExtendedInterface).self)
+                        let parent = try cast(source, to: (any GraphQLGenerated.ExtendedInterface).self)
                         let context = try cast(context, to: GraphQLContext.self)
                         return try await parent.name(context: context, info: info)
                     }
@@ -424,7 +424,7 @@ struct SchemaGeneratorTests {
                     The book title
                     \"\"\",
                     resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any BookProtocol).self)
+                        let parent = try cast(source, to: (any GraphQLGenerated.BookProtocol).self)
                         let context = try cast(context, to: GraphQLContext.self)
                         return try await parent.title(context: context, info: info)
                     }
@@ -432,7 +432,7 @@ struct SchemaGeneratorTests {
                 "author": GraphQLField(
                     type: GraphQLString,
                     resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any BookProtocol).self)
+                        let parent = try cast(source, to: (any GraphQLGenerated.BookProtocol).self)
                         let context = try cast(context, to: GraphQLContext.self)
                         return try await parent.author(context: context, info: info)
                     }
@@ -469,7 +469,7 @@ struct SchemaGeneratorTests {
                 "id": GraphQLField(
                     type: GraphQLID,
                     resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any UserProtocol).self)
+                        let parent = try cast(source, to: (any GraphQLGenerated.UserProtocol).self)
                         let context = try cast(context, to: GraphQLContext.self)
                         return try await parent.id(context: context, info: info)
                     }
@@ -477,7 +477,7 @@ struct SchemaGeneratorTests {
                 "name": GraphQLField(
                     type: GraphQLString,
                     resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any UserProtocol).self)
+                        let parent = try cast(source, to: (any GraphQLGenerated.UserProtocol).self)
                         let context = try cast(context, to: GraphQLContext.self)
                         return try await parent.name(context: context, info: info)
                     }
@@ -687,7 +687,7 @@ struct SchemaGeneratorTests {
             A simple field
             \"\"\",
             resolve: { source, args, context, info in
-                let parent = try cast(source, to: (any TestProtocol).self)
+                let parent = try cast(source, to: (any GraphQLGenerated.TestProtocol).self)
                 let context = try cast(context, to: GraphQLContext.self)
                 return try await parent.myField(context: context, info: info)
             }
@@ -772,7 +772,7 @@ struct SchemaGeneratorTests {
             Use newField instead
             \"\"\",
             resolve: { source, args, context, info in
-                let parent = try cast(source, to: (any TestProtocol).self)
+                let parent = try cast(source, to: (any GraphQLGenerated.TestProtocol).self)
                 let context = try cast(context, to: GraphQLContext.self)
                 return try await parent.oldField(context: context, info: info)
             }
@@ -804,7 +804,7 @@ struct SchemaGeneratorTests {
         let expected = """
 
         resolve: { source, args, context, info in
-            let parent = try cast(source, to: (any UserProtocol).self)
+            let parent = try cast(source, to: (any GraphQLGenerated.UserProtocol).self)
             let filter = args["filter"] != .undefined ? try decoder.decode((String?).self, from: args["filter"]) : nil
             let context = try cast(context, to: GraphQLContext.self)
             return try await parent.posts(filter: filter, context: context, info: info)

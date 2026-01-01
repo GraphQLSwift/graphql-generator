@@ -19,29 +19,30 @@ package struct TypeGenerator {
         // Generate ResolversProtocol
         output += """
 
-        protocol ResolversProtocol: Sendable {
+        enum GraphQLGenerated {
+            protocol ResolversProtocol: Sendable {
         """
         if let queryType = schema.queryType {
             output += """
 
-                associatedtype Query: \(try swiftTypeDeclaration(for: queryType, nameGenerator: nameGenerator))
+                    associatedtype Query: \(try swiftTypeDeclaration(for: queryType, includeNamespace: false, nameGenerator: nameGenerator))
             """
         }
         if let mutationType = schema.mutationType {
             output += """
 
-                associatedtype Mutation: \(try swiftTypeDeclaration(for: mutationType, nameGenerator: nameGenerator))
+                    associatedtype Mutation: \(try swiftTypeDeclaration(for: mutationType, includeNamespace: false, nameGenerator: nameGenerator))
             """
         }
         if let subscriptionType = schema.subscriptionType {
             output += """
 
-                associatedtype Subscription: \(try swiftTypeDeclaration(for: subscriptionType, nameGenerator: nameGenerator))
+                    associatedtype Subscription: \(try swiftTypeDeclaration(for: subscriptionType, includeNamespace: false, nameGenerator: nameGenerator))
             """
         }
         output += """
 
-        }
+            }
         """
 
         // Ignore any internal types (which have prefix "__")
@@ -56,7 +57,7 @@ package struct TypeGenerator {
         for type in enumTypes {
             output += try"""
 
-            \(generateEnum(for: type))
+            \(generateEnum(for: type).indent(1, includeFirst: true))
             """
         }
 
@@ -67,7 +68,7 @@ package struct TypeGenerator {
         for type in inputTypes {
             output += try"""
 
-            \(generateInputStruct(for: type))
+            \(generateInputStruct(for: type).indent(1, includeFirst: true))
             """
         }
 
@@ -83,13 +84,13 @@ package struct TypeGenerator {
             if let description = type.description {
                 output += """
 
-                \(description.docComment())
+                \(description.docComment().indent(1, includeFirst: true))
                 """
             }
-            let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
+            let swiftTypeName = try swiftTypeDeclaration(for: type, includeNamespace: false, nameGenerator: nameGenerator)
             output += """
 
-            protocol \(swiftTypeName): Sendable {}
+                protocol \(swiftTypeName): Sendable {}
             """
 
             // Record which types need to be conformed
@@ -109,7 +110,7 @@ package struct TypeGenerator {
         for type in interfaceTypes {
             output += try"""
 
-            \(generateInterfaceProtocol(for: type))
+            \(generateInterfaceProtocol(for: type).indent(1, includeFirst: true))
             """
         }
 
@@ -125,7 +126,7 @@ package struct TypeGenerator {
         for type in objectTypes {
             output += try"""
 
-            \(generateTypeProtocol(for: type, unionTypeMap: unionTypeMap))
+            \(generateTypeProtocol(for: type, unionTypeMap: unionTypeMap).indent(1, includeFirst: true))
             """
         }
 
@@ -133,7 +134,7 @@ package struct TypeGenerator {
         if let queryType = schema.queryType {
             output += try"""
 
-            \(generateRootTypeProtocol(for: queryType))
+            \(generateRootTypeProtocol(for: queryType).indent(1, includeFirst: true))
             """
         }
 
@@ -141,7 +142,7 @@ package struct TypeGenerator {
         if let mutationType = schema.mutationType {
             output += try"""
 
-            \(generateRootTypeProtocol(for: mutationType))
+            \(generateRootTypeProtocol(for: mutationType).indent(1, includeFirst: true))
             """
         }
 
@@ -149,9 +150,13 @@ package struct TypeGenerator {
         if let subscriptionType = schema.subscriptionType {
             output += try"""
 
-            \(generateRootTypeProtocol(for: subscriptionType))
+            \(generateRootTypeProtocol(for: subscriptionType).indent(1, includeFirst: true))
             """
         }
+        output += """
+
+        }
+        """
 
         return output
     }
@@ -167,7 +172,7 @@ package struct TypeGenerator {
             """
         }
 
-        let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
+        let swiftTypeName = try swiftTypeDeclaration(for: type, includeNamespace: false, nameGenerator: nameGenerator)
         output += """
 
         enum \(swiftTypeName): String, Codable, Sendable {
@@ -208,7 +213,7 @@ package struct TypeGenerator {
             """
         }
 
-        let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
+        let swiftTypeName = try swiftTypeDeclaration(for: type, includeNamespace: false, nameGenerator: nameGenerator)
         output += """
 
         struct \(swiftTypeName): Codable, Sendable {
@@ -224,7 +229,7 @@ package struct TypeGenerator {
                 """
             }
 
-            let returnType = try swiftTypeReference(for: field.type, nameGenerator: nameGenerator)
+            let returnType = try swiftTypeReference(for: field.type, includeNamespace: false, nameGenerator: nameGenerator)
 
             output += """
 
@@ -253,10 +258,10 @@ package struct TypeGenerator {
         }
 
         let interfaces = try type.interfaces().map {
-            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator) + ", "
+            try swiftTypeDeclaration(for: $0, includeNamespace: false, nameGenerator: nameGenerator) + ", "
         }.joined(separator: "")
 
-        let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
+        let swiftTypeName = try swiftTypeDeclaration(for: type, includeNamespace: false, nameGenerator: nameGenerator)
         output += """
 
         protocol \(swiftTypeName): \(interfaces)Sendable {
@@ -272,13 +277,13 @@ package struct TypeGenerator {
                 """
             }
 
-            let returnType = try swiftTypeReference(for: field.type, nameGenerator: nameGenerator)
+            let returnType = try swiftTypeReference(for: field.type, includeNamespace: false, nameGenerator: nameGenerator)
 
             var params: [String] = []
 
             // Add arguments if any
             for (argName, arg) in field.args {
-                let argType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
+                let argType = try swiftTypeReference(for: arg.type, includeNamespace: false, nameGenerator: nameGenerator)
                 params.append("\(argName): \(argType)")
             }
 
@@ -317,14 +322,14 @@ package struct TypeGenerator {
         }
 
         let unions = try unionTypeMap[type.name]?.map {
-            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator) + ", "
+            try swiftTypeDeclaration(for: $0, includeNamespace: false, nameGenerator: nameGenerator) + ", "
         }.joined(separator: "") ?? ""
 
         let interfaces = try type.interfaces().map {
-            try swiftTypeDeclaration(for: $0, nameGenerator: nameGenerator) + ", "
+            try swiftTypeDeclaration(for: $0, includeNamespace: false, nameGenerator: nameGenerator) + ", "
         }.joined(separator: "")
 
-        let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
+        let swiftTypeName = try swiftTypeDeclaration(for: type, includeNamespace: false, nameGenerator: nameGenerator)
         output += """
 
         protocol \(swiftTypeName): \(unions)\(interfaces)Sendable {
@@ -340,13 +345,13 @@ package struct TypeGenerator {
                 """
             }
 
-            let returnType = try swiftTypeReference(for: field.type, nameGenerator: nameGenerator)
+            let returnType = try swiftTypeReference(for: field.type, includeNamespace: false, nameGenerator: nameGenerator)
 
             var params: [String] = []
 
             // Add arguments if any
             for (argName, arg) in field.args {
-                let argType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
+                let argType = try swiftTypeReference(for: arg.type, includeNamespace: false, nameGenerator: nameGenerator)
                 params.append("\(argName): \(argType)")
             }
 
@@ -386,7 +391,7 @@ package struct TypeGenerator {
             """
         }
 
-        let swiftTypeName = try swiftTypeDeclaration(for: type, nameGenerator: nameGenerator)
+        let swiftTypeName = try swiftTypeDeclaration(for: type, includeNamespace: false, nameGenerator: nameGenerator)
         output += """
 
         protocol \(swiftTypeName): Sendable {
@@ -402,7 +407,7 @@ package struct TypeGenerator {
                 """
             }
 
-            var returnType = try swiftTypeReference(for: field.type, nameGenerator: nameGenerator)
+            var returnType = try swiftTypeReference(for: field.type, includeNamespace: false, nameGenerator: nameGenerator)
             if type.name == "Subscription" {
                 returnType = "AnyAsyncSequence<\(returnType)>"
             }
@@ -411,7 +416,7 @@ package struct TypeGenerator {
 
             // Add arguments if any
             for (argName, arg) in field.args {
-                let argType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
+                let argType = try swiftTypeReference(for: arg.type, includeNamespace: false, nameGenerator: nameGenerator)
                 params.append("\(argName): \(argType)")
             }
 

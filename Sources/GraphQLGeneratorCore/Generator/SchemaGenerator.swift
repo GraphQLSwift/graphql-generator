@@ -15,7 +15,7 @@ package struct SchemaGenerator {
         import GraphQLGeneratorRuntime
 
         /// Build a GraphQL schema with the provided resolvers
-        func buildGraphQLSchema<Resolvers: ResolversProtocol>(
+        func buildGraphQLSchema<Resolvers: GraphQLGenerated.ResolversProtocol>(
             resolvers: Resolvers.Type,
             decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {
@@ -712,7 +712,7 @@ package struct SchemaGenerator {
             // For nested resolvers, we decode and call the method on the parent instance
             // We use the type Declaration name, since this should always be a non-list, non-nullable instance,
             // and add 'any' because all intermediate types are represented as protocols
-            let parentCastType = try swiftTypeDeclaration(for: parentType, nameGenerator: nameGenerator)
+            let parentCastType = try swiftTypeDeclaration(for: parentType, includeNamespace: true, nameGenerator: nameGenerator)
             output += """
 
                 let parent = try cast(source, to: (any \(parentCastType)).self)
@@ -722,7 +722,7 @@ package struct SchemaGenerator {
         // Add field arguments
         for (argName, arg) in field.args {
             let safeArgName = nameGenerator.swiftMemberName(for: argName)
-            let swiftType = try swiftTypeReference(for: arg.type, nameGenerator: nameGenerator)
+            let swiftType = try swiftTypeReference(for: arg.type, includeNamespace: true, nameGenerator: nameGenerator)
             // Extract value from Map based on type
             var decodeStatement = "try decoder.decode((\(swiftType)).self, from: args[\"\(argName)\"])"
             if !(arg.type is GraphQLNonNull) {
