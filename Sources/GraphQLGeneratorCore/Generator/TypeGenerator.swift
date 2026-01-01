@@ -16,28 +16,28 @@ package struct TypeGenerator {
 
         """
 
-        // Generate ResolversProtocol
+        // Generate Resolvers protocol
         output += """
 
         enum GraphQLGenerated {
-            protocol ResolversProtocol: Sendable {
+            protocol Resolvers: Sendable {
         """
         if let queryType = schema.queryType {
             output += """
 
-                    associatedtype Query: \(try swiftTypeDeclaration(for: queryType, includeNamespace: false, nameGenerator: nameGenerator))
+                    associatedtype Query: \(try swiftTypeDeclaration(for: queryType, includeNamespace: true, nameGenerator: nameGenerator))
             """
         }
         if let mutationType = schema.mutationType {
             output += """
 
-                    associatedtype Mutation: \(try swiftTypeDeclaration(for: mutationType, includeNamespace: false, nameGenerator: nameGenerator))
+                    associatedtype Mutation: \(try swiftTypeDeclaration(for: mutationType, includeNamespace: true, nameGenerator: nameGenerator))
             """
         }
         if let subscriptionType = schema.subscriptionType {
             output += """
 
-                    associatedtype Subscription: \(try swiftTypeDeclaration(for: subscriptionType, includeNamespace: false, nameGenerator: nameGenerator))
+                    associatedtype Subscription: \(try swiftTypeDeclaration(for: subscriptionType, includeNamespace: true, nameGenerator: nameGenerator))
             """
         }
         output += """

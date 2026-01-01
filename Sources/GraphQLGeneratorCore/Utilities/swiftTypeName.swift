@@ -68,16 +68,6 @@ func swiftTypeDeclaration(for type: GraphQLType, includeNamespace: Bool, nameGen
         if includeNamespace {
             baseName = "GraphQLGenerated.\(baseName)"
         }
-
-        if type is GraphQLInputObjectType {
-            return "\(baseName)Input"
-        } else if type is GraphQLInterfaceType {
-            return "\(baseName)Interface"
-        } else if type is GraphQLObjectType {
-            return "\(baseName)Protocol"
-        } else if type is GraphQLUnionType {
-            return "\(baseName)Union"
-        }
         return baseName
     }
 

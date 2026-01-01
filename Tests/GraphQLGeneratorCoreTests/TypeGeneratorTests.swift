@@ -45,7 +45,7 @@ struct TypeGeneratorTests {
 
     @Test func generateInputStruct() throws {
         let inputType = try GraphQLInputObjectType(
-            name: "CreateUser",
+            name: "CreateUserInput",
             description: "Input for creating a new user",
             fields: [
                 "name": InputObjectField(
@@ -98,10 +98,10 @@ struct TypeGeneratorTests {
 
         let expected = """
 
-        struct PersonInputInput: Codable, Sendable {
+        struct PersonInput: Codable, Sendable {
             let name: String
-            let address: AddressInputInput?
-            let friends: [PersonInputInput]?
+            let address: AddressInput?
+            let friends: [PersonInput]?
         }
         """
 
@@ -143,7 +143,7 @@ struct TypeGeneratorTests {
             actual == """
 
             /// B
-            protocol BInterface: AInterface, Sendable {
+            protocol B: A, Sendable {
                 /// foo
                 func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 
@@ -194,7 +194,7 @@ struct TypeGeneratorTests {
             actual == """
 
             /// Foo
-            protocol FooProtocol: XUnion, AInterface, Sendable {
+            protocol Foo: X, A, Sendable {
                 /// foo
                 func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 
@@ -234,12 +234,12 @@ struct TypeGeneratorTests {
         #expect(
             actual == """
 
-            protocol QueryProtocol: Sendable {
+            protocol Query: Sendable {
                 /// foo
                 static func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
 
                 /// bar
-                static func bar(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any BarProtocol)?
+                static func bar(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any Bar)?
 
             }
             """
@@ -274,7 +274,7 @@ struct TypeGeneratorTests {
         let expected = """
 
         /// Mutations
-        protocol MutationProtocol: Sendable {
+        protocol Mutation: Sendable {
             /// Create a new user
             static func createUser(name: String, email: String, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
 
@@ -307,7 +307,7 @@ struct TypeGeneratorTests {
         #expect(
             actual == """
 
-            protocol SubscriptionProtocol: Sendable {
+            protocol Subscription: Sendable {
                 /// foo
                 static func watchThis(id: String?, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<String?>
 

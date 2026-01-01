@@ -65,13 +65,13 @@ public struct EmailAddress: Scalar {
 }
 
 // Now create types that conform to the expected protocols
-struct Resolvers: GraphQLGenerated.ResolversProtocol {
+struct Resolvers: GraphQLGenerated.Resolvers {
     typealias Query = HelloWorldServer.Query
     typealias Mutation = HelloWorldServer.Mutation
     typealias Subscription = HelloWorldServer.Subscription
 }
 
-struct User: GraphQLGenerated.UserProtocol {
+struct User: GraphQLGenerated.User {
     // User can choose structure
     let id: String
     let name: String
@@ -101,7 +101,7 @@ struct User: GraphQLGenerated.UserProtocol {
     }
 }
 
-struct Contact: GraphQLGenerated.ContactProtocol {
+struct Contact: GraphQLGenerated.Contact {
     // User can choose structure
     let email: String
 
@@ -111,7 +111,7 @@ struct Contact: GraphQLGenerated.ContactProtocol {
     }
 }
 
-struct Post: GraphQLGenerated.PostProtocol {
+struct Post: GraphQLGenerated.Post {
     // User can choose structure
     let id: String
     let title: String
@@ -131,37 +131,37 @@ struct Post: GraphQLGenerated.PostProtocol {
         return content
     }
 
-    func author(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> any GraphQLGenerated.UserProtocol {
+    func author(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> any GraphQLGenerated.User {
         return context.users[authorId]!
     }
 }
 
-struct Query: GraphQLGenerated.QueryProtocol {
+struct Query: GraphQLGenerated.Query {
     // Required implementations
-    static func user(id: String, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.UserProtocol)? {
+    static func user(id: String, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.User)? {
         return context.users[id]
     }
 
-    static func users(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.UserProtocol] {
-        return context.users.values.map { $0 as any GraphQLGenerated.UserProtocol }
+    static func users(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.User] {
+        return context.users.values.map { $0 as any GraphQLGenerated.User }
     }
 
-    static func post(id: String, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.PostProtocol)? {
+    static func post(id: String, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Post)? {
         return context.posts[id]
     }
 
-    static func posts(limit _: Int?, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PostProtocol] {
-        return context.posts.values.map { $0 as any GraphQLGenerated.PostProtocol }
+    static func posts(limit _: Int?, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Post] {
+        return context.posts.values.map { $0 as any GraphQLGenerated.Post }
     }
 
-    static func userOrPost(id: String, context: GraphQLContext, info _: GraphQLResolveInfo) async throws -> (any GraphQLGenerated.UserOrPostUnion)? {
+    static func userOrPost(id: String, context: GraphQLContext, info _: GraphQLResolveInfo) async throws -> (any GraphQLGenerated.UserOrPost)? {
         return context.users[id] ?? context.posts[id]
     }
 }
 
-struct Mutation: GraphQLGenerated.MutationProtocol {
+struct Mutation: GraphQLGenerated.Mutation {
     // Required implementations
-    static func upsertUser(userInfo: GraphQLGenerated.UserInfoInput, context: GraphQLContext, info _: GraphQLResolveInfo) -> any GraphQLGenerated.UserProtocol {
+    static func upsertUser(userInfo: GraphQLGenerated.UserInfo, context: GraphQLContext, info _: GraphQLResolveInfo) -> any GraphQLGenerated.User {
         let user = User(
             id: userInfo.id,
             name: userInfo.name,
@@ -174,10 +174,10 @@ struct Mutation: GraphQLGenerated.MutationProtocol {
     }
 }
 
-struct Subscription: GraphQLGenerated.SubscriptionProtocol {
+struct Subscription: GraphQLGenerated.Subscription {
     // Required implementations
-    static func watchUser(id: String, context: GraphQLContext, info _: GraphQLResolveInfo) async throws -> AnyAsyncSequence<(any GraphQLGenerated.UserProtocol)?> {
-        return AsyncStream<(any GraphQLGenerated.UserProtocol)?> { continuation in
+    static func watchUser(id: String, context: GraphQLContext, info _: GraphQLResolveInfo) async throws -> AnyAsyncSequence<(any GraphQLGenerated.User)?> {
+        return AsyncStream<(any GraphQLGenerated.User)?> { continuation in
             context.onTriggerWatch = { [weak context] in
                 continuation.yield(context?.users[id])
             }
