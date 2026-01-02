@@ -42,21 +42,20 @@ struct GraphQLGeneratorCommand: ParsableCommand {
             print("Parsing schema files...")
         }
 
-        // Parse schema files
-        let parser = SchemaParser()
-        let schema = try parser.parseSchemaFiles(schemaFiles)
-
-        if verbose {
-            print("Schema parsed successfully")
-            print("Generating Swift code...")
+        /// Read GraphQL schema files and combine them into a single schema
+        var combinedSource = ""
+        for filePath in schemaFiles {
+            let url = URL(fileURLWithPath: filePath)
+            let content = try String(contentsOf: url, encoding: .utf8)
+            combinedSource += content + "\n"
         }
 
         // Generate code
         let generator = CodeGenerator()
-        let generatedFiles = try generator.generate(schema: schema)
+        let files = try generator.generate(source: combinedSource)
 
         // Write generated files
-        for (filename, content) in generatedFiles {
+        for (filename, content) in files {
             let fileURL = outputURL.appendingPathComponent(filename)
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
 

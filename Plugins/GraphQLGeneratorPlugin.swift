@@ -29,6 +29,7 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         let outputFiles = [
             outputDirectory.appendingPathComponent("Types.swift"),
             outputDirectory.appendingPathComponent("Schema.swift"),
+            outputDirectory.appendingPathComponent("SDL.swift"),
         ]
 
         let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [

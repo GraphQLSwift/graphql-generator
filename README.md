@@ -218,7 +218,6 @@ public struct EmailAddress: Scalar {
 ## Development Roadmap
 
 1. Directives: Directives are currently not supported
-2. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
 
 ## Contributing
 

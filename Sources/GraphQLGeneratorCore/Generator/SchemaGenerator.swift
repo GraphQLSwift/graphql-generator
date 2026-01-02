@@ -19,34 +19,13 @@ package struct SchemaGenerator {
             resolvers: Resolvers.Type,
             decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {
+
+            let schema = try GraphQL.buildSchema(source: graphQLRawSDL)
         """
 
         // Ignore any internal types (which have prefix "__")
         let types = schema.typeMap.values.filter {
             !$0.name.hasPrefix("__")
-        }
-
-        // Generate scalar type definitions
-        let scalarTypes = types.compactMap {
-            $0 as? GraphQLScalarType
-        }.filter {
-            // Exclude the standard scalars
-            !["Int", "Float", "String", "Boolean", "ID"].contains($0.name)
-        }
-        for scalarType in scalarTypes {
-            output += try"""
-
-            \(generateScalarTypeDefinition(for: scalarType).indent(1))
-            """
-        }
-
-        // Generate enum type definitions
-        let enumTypes = types.compactMap { $0 as? GraphQLEnumType }
-        for enumType in enumTypes {
-            output += try"""
-
-            \(generateEnumTypeDefinition(for: enumType).indent(1))
-            """
         }
 
         // Generate type definitions for all object types
@@ -56,22 +35,10 @@ package struct SchemaGenerator {
         for interfaceType in interfaceTypes {
             output += try"""
 
-            \(generateInterfaceTypeDefinition(for: interfaceType, resolvers: "resolvers").indent(1))
+
+            \(generateInterfaceType(for: interfaceType).indent(1))
             """
         }
-
-        // Generate type definitions for all input object types
-        let inputTypes = types.compactMap {
-            $0 as? GraphQLInputObjectType
-        }
-        for inputType in inputTypes {
-            output += try"""
-
-            \(generateInputTypeDefinition(for: inputType).indent(1))
-            """
-        }
-
-        // Generate type definitions for all object types
 
         // Generate GraphQLObjectType definitions for non-root types
         let objectTypes = types.compactMap {
@@ -85,37 +52,8 @@ package struct SchemaGenerator {
         for objectType in objectTypes {
             output += try"""
 
-            \(generateObjectTypeDefinition(for: objectType).indent(1))
-            """
-        }
-        // Generate type definitions for all union object types
-        let unionTypes = types.compactMap {
-            $0 as? GraphQLUnionType
-        }
-        for unionType in unionTypes {
-            output += try"""
 
-            \(generateUnionTypeDefinition(for: unionType).indent(1))
-            """
-        }
-
-        // Generate field and interface definitions for non-root types
-        for inputType in inputTypes {
-            output += try"""
-
-            \(generateInputTypeFieldDefinition(for: inputType).indent(1))
-            """
-        }
-        for interfaceType in interfaceTypes {
-            output += try"""
-
-            \(generateInterfaceTypeFieldDefinition(for: interfaceType).indent(1))
-            """
-        }
-        for objectType in objectTypes {
-            output += try"""
-
-            \(generateObjectTypeFieldDefinition(for: objectType, resolvers: "parent").indent(1))
+            \(generateObjectType(for: objectType, target: .parent).indent(1))
             """
         }
 
@@ -123,7 +61,8 @@ package struct SchemaGenerator {
         if let queryType = schema.queryType {
             output += try"""
 
-            \(generateRootTypeDefinition(for: queryType, rootType: .query).indent(1))
+
+            \(generateObjectType(for: queryType, target: .query).indent(1))
             """
         }
 
@@ -131,7 +70,8 @@ package struct SchemaGenerator {
         if let mutationType = schema.mutationType {
             output += try"""
 
-            \(generateRootTypeDefinition(for: mutationType, rootType: .mutation).indent(1))
+
+            \(generateObjectType(for: mutationType, target: .mutation).indent(1))
             """
         }
 
@@ -139,36 +79,15 @@ package struct SchemaGenerator {
         if let subscriptionType = schema.subscriptionType {
             output += try"""
 
-            \(generateRootTypeDefinition(for: subscriptionType, rootType: .subscription).indent(1))
-            """
-        }
 
-        // TODO: Subscription
-
-        // Build and return the schema
-        output += """
-
-            return try GraphQLSchema(
-                query: query
-        """
-
-        if schema.mutationType != nil {
-            output += """
-            ,
-                    mutation: mutation
-            """
-        }
-
-        if schema.subscriptionType != nil {
-            output += """
-            ,
-                    subscription: subscription
+            \(generateObjectType(for: subscriptionType, target: .subscription).indent(1))
             """
         }
 
         output += """
 
-            )
+
+            return schema
         }
 
         """
@@ -176,202 +95,14 @@ package struct SchemaGenerator {
         return output
     }
 
-    func generateScalarTypeDefinition(for type: GraphQLScalarType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        // We expect the user to define a type of the same name that conforms to provided "Scalar" protocol
-        return """
-
-        let \(varName) = try GraphQLScalarType(
-            name: "\(type.name)",
-            serialize: { any in
-                try \(type.name).serialize(any: any)
-            },
-            parseValue: { map in
-                try \(type.name).parseValue(map: map)
-            },
-            parseLiteral: { value in
-                try \(type.name).parseLiteral(value: value)
-            }
-        )
-        """
-    }
-
-    func generateEnumTypeDefinition(for type: GraphQLEnumType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
+    func generateInterfaceType(for type: GraphQLInterfaceType) throws -> String {
+        let variableName = nameGenerator.swiftMemberName(for: type.name)
 
         var output = """
 
-        let \(varName) = try GraphQLEnumType(
-            name: "\(type.name)"
-        """
-
-        if let description = type.description {
-            output += """
-            ,
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\"
-            """
-        }
-
-        output += """
-        ,
-            values: [
-        """
-
-        for value in type.values {
-            let safeCaseName = nameGenerator.swiftMemberName(for: value.name)
-            output += """
-
-                    "\(value.name)": GraphQLEnumValue(
-            """
-
-            if let description = value.description {
-                output += """
-
-                            value: \(safeCaseName),
-                            description:  \"\"\"
-                            \(description.indent(3, includeFirst: false))
-                            \"\"\",
-                """
-            } else {
-                output += """
-
-                            value: .string("\(value.name)")
-                """
-            }
-
-            output += """
-
-                    ),
-            """
-        }
-
-        output += """
-
-            ]
-        )
-        """
-
-        return output
-    }
-
-    func generateInputTypeDefinition(for type: GraphQLInputObjectType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        let \(varName) = try GraphQLInputObjectType(
-            name: "\(type.name)"
-        """
-
-        if let description = type.description {
-            output += """
-            ,
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\"
-            """
-        }
-
-        // Delay field generation to support recursive type systems
-        output += """
-
-        )
-        """
-
-        return output
-    }
-
-    func generateInputTypeFieldDefinition(for type: GraphQLInputObjectType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        \(varName).fields = {
-            [
-        """
-
-        // Generate fields
-        let fields = try type.fields()
-        for (fieldName, field) in fields {
-            output += try """
-
-                    "\(fieldName)": InputObjectField(
-                        type: \(graphQLTypeReference(for: field.type))
-            """
-
-            if let defaultValue = field.defaultValue {
-                output += """
-                ,
-                            defaultValue: \(mapToSwiftCode(defaultValue))
-                """
-            }
-
-            if let description = field.description {
-                output += """
-                ,
-                            description: \"\"\"
-                            \(description.indent(3, includeFirst: false))
-                            \"\"\"
-                """
-            }
-            if let deprecationReason = field.deprecationReason {
-                output += """
-                ,
-                            deprecationReason: \"\"\"
-                            \(deprecationReason.indent(3, includeFirst: false))
-                            \"\"\"
-                """
-            }
-
-            output += """
-
-                    ),
-            """
-        }
-
-        output += """
-
-            ]
-        }
-        """
-
-        return output
-    }
-
-    func generateInterfaceTypeDefinition(for type: GraphQLInterfaceType, resolvers _: String) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        let \(varName) = try GraphQLInterfaceType(
-            name: "\(type.name)"
-        """
-
-        if let description = type.description {
-            output += """
-            ,
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\",
-            """
-        }
-
-        // Delay field & interface generation to support recursive type systems
-
-        output += """
-
-        )
-        """
-
-        return output
-    }
-
-    func generateInterfaceTypeFieldDefinition(for type: GraphQLInterfaceType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        \(varName).fields = {
-            [
+        let \(variableName)Fields = try (schema.typeMap["\(type.name)"] as? GraphQLInterfaceType)?.fields() ?? [:]
+        (schema.typeMap["\(type.name)"] as? GraphQLInterfaceType)?.fields = {
+            var fields = \(variableName)Fields
         """
 
         // Generate fields
@@ -379,198 +110,42 @@ package struct SchemaGenerator {
         for (fieldName, field) in fields {
             output += try"""
 
-            \(generateFieldDefinition(
+            \(generateResolverCallback(
                 fieldName: fieldName,
                 field: field,
                 target: .parent,
                 parentType: type
-            ).indent(2))
+            ).indent(1))
             """
         }
 
         output += """
 
-            ]
+            return fields
         }
-        """
-
-        let interfaces = try type.interfaces()
-        if !interfaces.isEmpty {
-            output += """
-
-            \(varName).interfaces = {
-                [
-            """
-
-            // Generate fields
-            for interface in interfaces {
-                output += """
-
-                        \(nameGenerator.swiftMemberName(for: interface.name)),
-                """
-            }
-
-            output += """
-
-                ]
-            }
-            """
-        }
-
-        return output
-    }
-
-    func generateObjectTypeDefinition(for type: GraphQLObjectType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        let \(varName) = try GraphQLObjectType(
-            name: "\(type.name)"
-        """
-
-        if let description = type.description {
-            output += """
-            ,
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\"
-            """
-        }
-
-        // Delay field generation to support recursive type systems
-        output += """
-
-        )
         """
 
         return output
     }
 
-    func generateObjectTypeFieldDefinition(for type: GraphQLObjectType, resolvers _: String) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        \(varName).fields = {
-            [
-        """
-
-        // Generate fields
-        let fields = try type.fields()
-        for (fieldName, field) in fields {
-            output += try"""
-
-            \(generateFieldDefinition(
-                fieldName: fieldName,
-                field: field,
-                target: .parent,
-                parentType: type
-            ).indent(2))
-            """
-        }
-
-        output += """
-
-            ]
-        }
-        """
-
-        let interfaces = try type.interfaces()
-        if !interfaces.isEmpty {
-            output += """
-
-            \(varName).interfaces = {
-                [
-            """
-
-            // Generate fields
-            for interface in interfaces {
-                output += """
-
-                        \(nameGenerator.swiftMemberName(for: interface.name)),
-                """
-            }
-
-            output += """
-
-                ]
-            }
-            """
-        }
-
-        return output
-    }
-
-    func generateUnionTypeDefinition(for type: GraphQLUnionType) throws -> String {
-        let varName = nameGenerator.swiftMemberName(for: type.name)
-
-        var output = """
-        let \(varName) = try GraphQLUnionType(
-            name: "\(type.name)"
-        """
-
-        if let description = type.description {
-            output += """
-            ,
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\"
-            """
-        }
-
-        output += """
-        ,
-            types: [
-        """
-        for type in try type.types() {
-            output += try"""
-
-                    \(graphQLTypeReference(for: type)),
-            """
-        }
-
-        // Delay type generation to support recursive type systems
-        output += """
-
-            ]
-        )
-        """
-
-        return output
-    }
-
-    func generateRootTypeDefinition(for type: GraphQLObjectType, rootType: RootType) throws -> String {
+    func generateObjectType(for type: GraphQLObjectType, target: ResolverTarget) throws -> String {
         let variableName: String
-        let target: ResolverTarget
-        switch rootType {
+        switch target {
         case .query:
             variableName = "query"
-            target = .query
         case .mutation:
             variableName = "mutation"
-            target = .mutation
         case .subscription:
             variableName = "subscription"
-            target = .subscription
+        case .parent:
+            variableName = nameGenerator.swiftMemberName(for: type.name)
         }
 
         var output = """
 
-        let \(variableName) = try GraphQLObjectType(
-            name: "\(type.name)",
-        """
-
-        if let description = type.description {
-            output += """
-
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\",
-            """
-        }
-
-        output += """
-
-            fields: [
+        let \(variableName)Fields = try (schema.typeMap["\(type.name)"] as? GraphQLObjectType)?.fields() ?? [:]
+        (schema.typeMap["\(type.name)"] as? GraphQLObjectType)?.fields = {
+            var fields = \(variableName)Fields
         """
 
         // Generate fields
@@ -578,105 +153,19 @@ package struct SchemaGenerator {
         for (fieldName, field) in fields {
             output += try"""
 
-            \(generateFieldDefinition(
+            \(generateResolverCallback(
                 fieldName: fieldName,
                 field: field,
                 target: target,
                 parentType: type
-            ).indent(2))
+            ).indent(1))
             """
         }
 
         output += """
 
-            ]
-        )
-        """
-
-        return output
-    }
-
-    func generateFieldDefinition(
-        fieldName: String,
-        field: GraphQLField,
-        target: ResolverTarget,
-        parentType: GraphQLNamedType
-    ) throws -> String {
-        var output = try """
-
-        "\(fieldName)": GraphQLField(
-            type: \(graphQLTypeReference(for: field.type))
-        """
-
-        if let description = field.description {
-            output += """
-            ,
-                description: \"\"\"
-                \(description.indent(1, includeFirst: false))
-                \"\"\"
-            """
+            return fields
         }
-
-        if let deprecationReason = field.deprecationReason {
-            output += """
-            ,
-                deprecationReason: \"\"\"
-                \(deprecationReason.indent(1, includeFirst: false))
-                \"\"\"
-            """
-        }
-
-        // Add arguments if any
-        if !field.args.isEmpty {
-            output += """
-            ,
-                args: [
-            """
-
-            for (argName, arg) in field.args {
-                output += try """
-
-                        "\(argName)": GraphQLArgument(
-                            type: \(graphQLTypeReference(for: arg.type))
-                """
-
-                if let description = arg.description {
-                    output += """
-                    ,
-                                description: \"\"\"
-                                \(description.indent(3, includeFirst: false))
-                                \"\"\"
-                    """
-                }
-
-                if let defaultValue = arg.defaultValue {
-                    output += """
-                    ,
-                                defaultValue: \(mapToSwiftCode(defaultValue))
-                    """
-                }
-
-                output += """
-
-                        ),
-                """
-            }
-
-            output += """
-
-                ]
-            """
-        }
-
-        output += try"""
-        ,
-        \(generateResolverCallback(
-            fieldName: fieldName,
-            field: field,
-            target: target,
-            parentType: parentType
-        ).indent(1))
-        ),
         """
 
         return output
@@ -693,15 +182,15 @@ package struct SchemaGenerator {
         if target == .subscription {
             output += """
 
-            resolve: { source, _, _, _ in
+            fields["\(fieldName)"]?.resolve = { source, _, _, _ in
                 return source
-            },
-            subscribe: { source, args, context, info in
+            }
+            fields["\(fieldName)"]?.subscribe = { source, args, context, info in
             """
         } else {
             output += """
 
-            resolve: { source, args, context, info in
+            fields["\(fieldName)"]?.resolve = { source, args, context, info in
             """
         }
 
@@ -761,42 +250,6 @@ package struct SchemaGenerator {
         """
 
         return output
-    }
-
-    /// Generate GraphQL type reference string (e.g., "GraphQLString", "GraphQLNonNull(GraphQLString)")
-    func graphQLTypeReference(for type: GraphQLType) throws -> String {
-        if let nonNull = type as? GraphQLNonNull {
-            return try "GraphQLNonNull(\(graphQLTypeReference(for: nonNull.ofType)))"
-        }
-
-        if let list = type as? GraphQLList {
-            return try "GraphQLList(\(graphQLTypeReference(for: list.ofType)))"
-        }
-
-        if let namedType = type as? GraphQLNamedType {
-            let typeName = namedType.name
-
-            // Map to built-in GraphQL types
-            switch typeName {
-            case "ID": return "GraphQLID"
-            case "String": return "GraphQLString"
-            case "Int": return "GraphQLInt"
-            case "Float": return "GraphQLFloat"
-            case "Boolean": return "GraphQLBoolean"
-            default:
-                // Reference to a custom type variable
-                let varName = nameGenerator.swiftMemberName(for: typeName)
-                return varName
-            }
-        }
-
-        throw GeneratorError.unsupportedType("Unknown type: \(type)")
-    }
-
-    enum RootType {
-        case query
-        case mutation
-        case subscription
     }
 
     enum ResolverTarget {

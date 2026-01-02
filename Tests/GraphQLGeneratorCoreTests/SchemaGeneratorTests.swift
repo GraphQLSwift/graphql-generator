@@ -49,55 +49,35 @@ struct SchemaGeneratorTests {
             resolvers: Resolvers.Type,
             decoder: MapDecoder = .init()
         ) throws -> GraphQLSchema {
-            let bar = try GraphQLObjectType(
-                name: "Bar",
-                description: """
-                bar
-                """
-            )
-            bar.fields = {
-                [
-                    "foo": GraphQLField(
-                        type: GraphQLString,
-                        description: """
-                        foo
-                        """,
-                        resolve: { source, args, context, info in
-                            let parent = try cast(source, to: (any GraphQLGenerated.Bar).self)
-                            let context = try cast(context, to: GraphQLContext.self)
-                            return try await parent.foo(context: context, info: info)
-                        }
-                    ),
-                ]
+
+            let schema = try GraphQL.buildSchema(source: graphQLRawSDL)
+
+            let barFields = try (schema.typeMap["Bar"] as? GraphQLObjectType)?.fields() ?? [:]
+            (schema.typeMap["Bar"] as? GraphQLObjectType)?.fields = {
+                var fields = barFields
+                fields["foo"]?.resolve = { source, args, context, info in
+                    let parent = try cast(source, to: (any GraphQLGenerated.Bar).self)
+                    let context = try cast(context, to: GraphQLContext.self)
+                    return try await parent.foo(context: context, info: info)
+                }
+                return fields
             }
-            let query = try GraphQLObjectType(
-                name: "Query",
-                fields: [
-                    "foo": GraphQLField(
-                        type: GraphQLString,
-                        description: """
-                        foo
-                        """,
-                        resolve: { source, args, context, info in
-                            let context = try cast(context, to: GraphQLContext.self)
-                            return try await Resolvers.Query.foo(context: context, info: info)
-                        }
-                    ),
-                    "bar": GraphQLField(
-                        type: bar,
-                        description: """
-                        bar
-                        """,
-                        resolve: { source, args, context, info in
-                            let context = try cast(context, to: GraphQLContext.self)
-                            return try await Resolvers.Query.bar(context: context, info: info)
-                        }
-                    ),
-                ]
-            )
-            return try GraphQLSchema(
-                query: query
-            )
+
+            let queryFields = try (schema.typeMap["Query"] as? GraphQLObjectType)?.fields() ?? [:]
+            (schema.typeMap["Query"] as? GraphQLObjectType)?.fields = {
+                var fields = queryFields
+                fields["foo"]?.resolve = { source, args, context, info in
+                    let context = try cast(context, to: GraphQLContext.self)
+                    return try await Resolvers.Query.foo(context: context, info: info)
+                }
+                fields["bar"]?.resolve = { source, args, context, info in
+                    let context = try cast(context, to: GraphQLContext.self)
+                    return try await Resolvers.Query.bar(context: context, info: info)
+                }
+                return fields
+            }
+
+            return schema
         }
 
         """#
@@ -106,183 +86,7 @@ struct SchemaGeneratorTests {
         )
     }
 
-    // MARK: - Scalar Type Tests
-
-    @Test func generateScalarTypeDefinition() throws {
-        let scalarType = try GraphQLScalarType(
-            name: "DateTime",
-            serialize: { try .init(any: $0) },
-            parseValue: { $0 },
-            parseLiteral: { _ in .null }
-        )
-
-        let result = try generator.generateScalarTypeDefinition(for: scalarType)
-
-        let expected = """
-
-        let dateTime = try GraphQLScalarType(
-            name: "DateTime",
-            serialize: { any in
-                try DateTime.serialize(any: any)
-            },
-            parseValue: { map in
-                try DateTime.parseValue(map: map)
-            },
-            parseLiteral: { value in
-                try DateTime.parseLiteral(value: value)
-            }
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    // MARK: - Enum Type Tests
-
-    @Test func generateEnumTypeDefinition() throws {
-        let enumType = try GraphQLEnumType(
-            name: "Status",
-            description: "Status of an item",
-            values: [
-                "ACTIVE": GraphQLEnumValue(value: .string("ACTIVE"), description: "Active status"),
-                "INACTIVE": GraphQLEnumValue(value: .string("INACTIVE")),
-            ]
-        )
-
-        let result = try generator.generateEnumTypeDefinition(for: enumType)
-
-        let expected = """
-
-        let status = try GraphQLEnumType(
-            name: "Status",
-            description: \"\"\"
-            Status of an item
-            \"\"\",
-            values: [
-                "ACTIVE": GraphQLEnumValue(
-                    value: active,
-                    description:  \"\"\"
-                    Active status
-                    \"\"\",
-                ),
-                "INACTIVE": GraphQLEnumValue(
-                    value: .string("INACTIVE")
-                ),
-            ]
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    // MARK: - Input Type Tests
-
-    @Test func generateInputTypeDefinition() throws {
-        let inputType = try GraphQLInputObjectType(
-            name: "CreateUserInput",
-            description: "Input for creating a user"
-        )
-
-        let result = try generator.generateInputTypeDefinition(for: inputType)
-
-        let expected = """
-        let createUserInput = try GraphQLInputObjectType(
-            name: "CreateUserInput",
-            description: \"\"\"
-            Input for creating a user
-            \"\"\"
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateInputTypeDefinitionWithoutDescription() throws {
-        let inputType = try GraphQLInputObjectType(
-            name: "UpdateInput"
-        )
-
-        let result = try generator.generateInputTypeDefinition(for: inputType)
-
-        let expected = """
-        let updateInput = try GraphQLInputObjectType(
-            name: "UpdateInput"
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateInputTypeFieldDefinition() throws {
-        let inputType = try GraphQLInputObjectType(
-            name: "UserInput",
-            fields: [
-                "name": InputObjectField(
-                    type: GraphQLNonNull(GraphQLString),
-                    description: "User's name"
-                ),
-                "age": InputObjectField(
-                    type: GraphQLInt,
-                    defaultValue: .int(0),
-                    description: "User's age"
-                ),
-                "email": InputObjectField(
-                    type: GraphQLString
-                ),
-            ]
-        )
-
-        let result = try generator.generateInputTypeFieldDefinition(for: inputType)
-
-        let expected = """
-        userInput.fields = {
-            [
-                "name": InputObjectField(
-                    type: GraphQLNonNull(GraphQLString),
-                    description: \"\"\"
-                    User's name
-                    \"\"\"
-                ),
-                "age": InputObjectField(
-                    type: GraphQLInt,
-                    defaultValue: .number(Number(0)),
-                    description: \"\"\"
-                    User's age
-                    \"\"\"
-                ),
-                "email": InputObjectField(
-                    type: GraphQLString
-                ),
-            ]
-        }
-        """
-
-        #expect(result == expected)
-    }
-
-    // MARK: - Interface Type Tests
-
-    @Test func generateInterfaceTypeDefinition() throws {
-        let interfaceType = try GraphQLInterfaceType(
-            name: "Node",
-            description: "An object with an ID"
-        )
-
-        let result = try generator.generateInterfaceTypeDefinition(for: interfaceType, resolvers: "resolvers")
-
-        let expected = """
-        let node = try GraphQLInterfaceType(
-            name: "Node",
-            description: \"\"\"
-            An object with an ID
-            \"\"\",
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateInterfaceTypeFieldDefinition() throws {
+    @Test func generateInterfaceType() throws {
         let interfaceType = try GraphQLInterfaceType(
             name: "Node",
             fields: [
@@ -293,113 +97,26 @@ struct SchemaGeneratorTests {
             ]
         )
 
-        let result = try generator.generateInterfaceTypeFieldDefinition(for: interfaceType)
+        let result = try generator.generateInterfaceType(for: interfaceType)
 
         let expected = """
-        node.fields = {
-            [
-                "id": GraphQLField(
-                    type: GraphQLNonNull(GraphQLID),
-                    description: \"\"\"
-                    The ID of the node
-                    \"\"\",
-                    resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any GraphQLGenerated.Node).self)
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await parent.id(context: context, info: info)
-                    }
-                ),
-            ]
-        }
-        """
 
-        #expect(result == expected)
-    }
-
-    @Test func generateInterfaceTypeFieldDefinitionWithInterfaces() throws {
-        let baseInterface = try GraphQLInterfaceType(
-            name: "Base",
-            fields: [
-                "id": GraphQLField(type: GraphQLID),
-            ]
-        )
-
-        let extendedInterface = try GraphQLInterfaceType(
-            name: "Extended",
-            fields: {
-                [
-                    "name": GraphQLField(type: GraphQLString),
-                ]
-            },
-            interfaces: {
-                [baseInterface]
+        let nodeFields = try (schema.typeMap["Node"] as? GraphQLInterfaceType)?.fields() ?? [:]
+        (schema.typeMap["Node"] as? GraphQLInterfaceType)?.fields = {
+            var fields = nodeFields
+            fields["id"]?.resolve = { source, args, context, info in
+                let parent = try cast(source, to: (any GraphQLGenerated.Node).self)
+                let context = try cast(context, to: GraphQLContext.self)
+                return try await parent.id(context: context, info: info)
             }
-        )
-
-        let result = try generator.generateInterfaceTypeFieldDefinition(for: extendedInterface)
-
-        let expected = """
-        extended.fields = {
-            [
-                "name": GraphQLField(
-                    type: GraphQLString,
-                    resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any GraphQLGenerated.Extended).self)
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await parent.name(context: context, info: info)
-                    }
-                ),
-            ]
-        }
-        extended.interfaces = {
-            [
-                base,
-            ]
+            return fields
         }
         """
 
         #expect(result == expected)
     }
 
-    // MARK: - Object Type Tests
-
-    @Test func generateObjectTypeDefinition() throws {
-        let objectType = try GraphQLObjectType(
-            name: "User",
-            description: "A user in the system"
-        )
-
-        let result = try generator.generateObjectTypeDefinition(for: objectType)
-
-        let expected = """
-        let user = try GraphQLObjectType(
-            name: "User",
-            description: \"\"\"
-            A user in the system
-            \"\"\"
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateObjectTypeDefinitionWithoutDescription() throws {
-        let objectType = try GraphQLObjectType(
-            name: "Post"
-        )
-
-        let result = try generator.generateObjectTypeDefinition(for: objectType)
-
-        let expected = """
-        let post = try GraphQLObjectType(
-            name: "Post"
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateObjectTypeFieldDefinition() throws {
+    @Test func generateObjectTypeParent() throws {
         let objectType = try GraphQLObjectType(
             name: "Book",
             fields: [
@@ -413,144 +130,31 @@ struct SchemaGeneratorTests {
             ]
         )
 
-        let result = try generator.generateObjectTypeFieldDefinition(for: objectType, resolvers: "parent")
+        let result = try generator.generateObjectType(for: objectType, target: .parent)
 
         let expected = """
-        book.fields = {
-            [
-                "title": GraphQLField(
-                    type: GraphQLNonNull(GraphQLString),
-                    description: \"\"\"
-                    The book title
-                    \"\"\",
-                    resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await parent.title(context: context, info: info)
-                    }
-                ),
-                "author": GraphQLField(
-                    type: GraphQLString,
-                    resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await parent.author(context: context, info: info)
-                    }
-                ),
-            ]
+
+        let bookFields = try (schema.typeMap["Book"] as? GraphQLObjectType)?.fields() ?? [:]
+        (schema.typeMap["Book"] as? GraphQLObjectType)?.fields = {
+            var fields = bookFields
+            fields["title"]?.resolve = { source, args, context, info in
+                let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
+                let context = try cast(context, to: GraphQLContext.self)
+                return try await parent.title(context: context, info: info)
+            }
+            fields["author"]?.resolve = { source, args, context, info in
+                let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
+                let context = try cast(context, to: GraphQLContext.self)
+                return try await parent.author(context: context, info: info)
+            }
+            return fields
         }
         """
 
         #expect(result == expected)
     }
 
-    @Test func generateObjectTypeFieldDefinitionWithInterfaces() throws {
-        let interfaceType = try GraphQLInterfaceType(
-            name: "Node",
-            fields: [
-                "id": GraphQLField(type: GraphQLID),
-            ]
-        )
-
-        let objectType = try GraphQLObjectType(
-            name: "User",
-            fields: [
-                "id": GraphQLField(type: GraphQLID),
-                "name": GraphQLField(type: GraphQLString),
-            ],
-            interfaces: [interfaceType]
-        )
-
-        let result = try generator.generateObjectTypeFieldDefinition(for: objectType, resolvers: "parent")
-
-        let expected = """
-        user.fields = {
-            [
-                "id": GraphQLField(
-                    type: GraphQLID,
-                    resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any GraphQLGenerated.User).self)
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await parent.id(context: context, info: info)
-                    }
-                ),
-                "name": GraphQLField(
-                    type: GraphQLString,
-                    resolve: { source, args, context, info in
-                        let parent = try cast(source, to: (any GraphQLGenerated.User).self)
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await parent.name(context: context, info: info)
-                    }
-                ),
-            ]
-        }
-        user.interfaces = {
-            [
-                node,
-            ]
-        }
-        """
-
-        #expect(result == expected)
-    }
-
-    // MARK: - Union Type Tests
-
-    @Test func generateUnionTypeDefinition() throws {
-        let type1 = try GraphQLObjectType(name: "Cat", fields: [:])
-        let type2 = try GraphQLObjectType(name: "Dog", fields: [:])
-
-        let unionType = try GraphQLUnionType(
-            name: "Pet",
-            description: "A pet can be a cat or dog",
-            types: [type1, type2]
-        )
-
-        let result = try generator.generateUnionTypeDefinition(for: unionType)
-
-        let expected = """
-        let pet = try GraphQLUnionType(
-            name: "Pet",
-            description: \"\"\"
-            A pet can be a cat or dog
-            \"\"\",
-            types: [
-                cat,
-                dog,
-            ]
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateUnionTypeDefinitionWithoutDescription() throws {
-        let type1 = try GraphQLObjectType(name: "Image", fields: [:])
-        let type2 = try GraphQLObjectType(name: "Video", fields: [:])
-
-        let unionType = try GraphQLUnionType(
-            name: "Media",
-            types: [type1, type2]
-        )
-
-        let result = try generator.generateUnionTypeDefinition(for: unionType)
-
-        let expected = """
-        let media = try GraphQLUnionType(
-            name: "Media",
-            types: [
-                image,
-                video,
-            ]
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    // MARK: - Root Type Tests
-
-    @Test func generateRootTypeDefinitionForQuery() throws {
+    @Test func generateObjectTypeForQuery() throws {
         let queryType = try GraphQLObjectType(
             name: "Query",
             description: "The query root",
@@ -562,34 +166,25 @@ struct SchemaGeneratorTests {
             ]
         )
 
-        let result = try generator.generateRootTypeDefinition(for: queryType, rootType: .query)
+        let result = try generator.generateObjectType(for: queryType, target: .query)
 
         let expected = """
 
-        let query = try GraphQLObjectType(
-            name: "Query",
-            description: \"\"\"
-            The query root
-            \"\"\",
-            fields: [
-                "user": GraphQLField(
-                    type: GraphQLString,
-                    description: \"\"\"
-                    Get a user
-                    \"\"\",
-                    resolve: { source, args, context, info in
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await Resolvers.Query.user(context: context, info: info)
-                    }
-                ),
-            ]
-        )
+        let queryFields = try (schema.typeMap["Query"] as? GraphQLObjectType)?.fields() ?? [:]
+        (schema.typeMap["Query"] as? GraphQLObjectType)?.fields = {
+            var fields = queryFields
+            fields["user"]?.resolve = { source, args, context, info in
+                let context = try cast(context, to: GraphQLContext.self)
+                return try await Resolvers.Query.user(context: context, info: info)
+            }
+            return fields
+        }
         """
 
         #expect(result == expected)
     }
 
-    @Test func generateRootTypeDefinitionForMutation() throws {
+    @Test func generateObjectTypeForMutation() throws {
         let mutationType = try GraphQLObjectType(
             name: "Mutation",
             fields: [
@@ -600,31 +195,25 @@ struct SchemaGeneratorTests {
             ]
         )
 
-        let result = try generator.generateRootTypeDefinition(for: mutationType, rootType: .mutation)
+        let result = try generator.generateObjectType(for: mutationType, target: .mutation)
 
         let expected = """
 
-        let mutation = try GraphQLObjectType(
-            name: "Mutation",
-            fields: [
-                "createUser": GraphQLField(
-                    type: GraphQLString,
-                    description: \"\"\"
-                    Create a user
-                    \"\"\",
-                    resolve: { source, args, context, info in
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await Resolvers.Mutation.createUser(context: context, info: info)
-                    }
-                ),
-            ]
-        )
+        let mutationFields = try (schema.typeMap["Mutation"] as? GraphQLObjectType)?.fields() ?? [:]
+        (schema.typeMap["Mutation"] as? GraphQLObjectType)?.fields = {
+            var fields = mutationFields
+            fields["createUser"]?.resolve = { source, args, context, info in
+                let context = try cast(context, to: GraphQLContext.self)
+                return try await Resolvers.Mutation.createUser(context: context, info: info)
+            }
+            return fields
+        }
         """
 
         #expect(result == expected)
     }
 
-    @Test func generateRootTypeDefinitionForSubscription() throws {
+    @Test func generateObjectTypeForSubscription() throws {
         let subscriptionType = try GraphQLObjectType(
             name: "Subscription",
             fields: [
@@ -635,152 +224,27 @@ struct SchemaGeneratorTests {
             ]
         )
 
-        let result = try generator.generateRootTypeDefinition(for: subscriptionType, rootType: .subscription)
+        let result = try generator.generateObjectType(for: subscriptionType, target: .subscription)
 
         let expected = """
 
-        let subscription = try GraphQLObjectType(
-            name: "Subscription",
-            fields: [
-                "userUpdated": GraphQLField(
-                    type: GraphQLString,
-                    description: \"\"\"
-                    Subscribe to user updates
-                    \"\"\",
-                    resolve: { source, _, _, _ in
-                        return source
-                    },
-                    subscribe: { source, args, context, info in
-                        let context = try cast(context, to: GraphQLContext.self)
-                        return try await Resolvers.Subscription.userUpdated(context: context, info: info)
-                    }
-                ),
-            ]
-        )
-        """
-
-        #expect(result == expected)
-    }
-
-    // MARK: - Field Definition Tests
-
-    @Test func generateFieldDefinitionSimple() throws {
-        let field = GraphQLField(
-            type: GraphQLString,
-            description: "A simple field"
-        )
-
-        let objectType = try GraphQLObjectType(name: "Test")
-
-        let result = try generator.generateFieldDefinition(
-            fieldName: "myField",
-            field: field,
-            target: .parent,
-            parentType: objectType
-        )
-
-        let expected = """
-
-        "myField": GraphQLField(
-            type: GraphQLString,
-            description: \"\"\"
-            A simple field
-            \"\"\",
-            resolve: { source, args, context, info in
-                let parent = try cast(source, to: (any GraphQLGenerated.Test).self)
-                let context = try cast(context, to: GraphQLContext.self)
-                return try await parent.myField(context: context, info: info)
+        let subscriptionFields = try (schema.typeMap["Subscription"] as? GraphQLObjectType)?.fields() ?? [:]
+        (schema.typeMap["Subscription"] as? GraphQLObjectType)?.fields = {
+            var fields = subscriptionFields
+            fields["userUpdated"]?.resolve = { source, _, _, _ in
+                return source
             }
-        ),
-        """
-
-        #expect(result == expected)
-    }
-
-    @Test func generateFieldDefinitionWithArguments() throws {
-        let field = GraphQLField(
-            type: GraphQLString,
-            args: [
-                "id": GraphQLArgument(
-                    type: GraphQLNonNull(GraphQLID),
-                    description: "The ID to fetch"
-                ),
-                "limit": GraphQLArgument(
-                    type: GraphQLInt,
-                    defaultValue: .int(10)
-                ),
-            ]
-        )
-
-        let objectType = try GraphQLObjectType(name: "Query")
-
-        let result = try generator.generateFieldDefinition(
-            fieldName: "getItem",
-            field: field,
-            target: .query,
-            parentType: objectType
-        )
-
-        let expected = """
-
-        "getItem": GraphQLField(
-            type: GraphQLString,
-            args: [
-                "id": GraphQLArgument(
-                    type: GraphQLNonNull(GraphQLID),
-                    description: \"\"\"
-                    The ID to fetch
-                    \"\"\"
-                ),
-                "limit": GraphQLArgument(
-                    type: GraphQLInt,
-                    defaultValue: .number(Number(10))
-                ),
-            ],
-            resolve: { source, args, context, info in
-                let id = try decoder.decode((String).self, from: args["id"])
-                let limit = args["limit"] != .undefined ? try decoder.decode((Int?).self, from: args["limit"]) : nil
+            fields["userUpdated"]?.subscribe = { source, args, context, info in
                 let context = try cast(context, to: GraphQLContext.self)
-                return try await Resolvers.Query.getItem(id: id, limit: limit, context: context, info: info)
+                return try await Resolvers.Subscription.userUpdated(context: context, info: info)
             }
-        ),
+            return fields
+        }
         """
 
         #expect(result == expected)
     }
 
-    @Test func generateFieldDefinitionWithDeprecation() throws {
-        let field = GraphQLField(
-            type: GraphQLString,
-            deprecationReason: "Use newField instead"
-        )
-
-        let objectType = try GraphQLObjectType(name: "Test")
-
-        let result = try generator.generateFieldDefinition(
-            fieldName: "oldField",
-            field: field,
-            target: .parent,
-            parentType: objectType
-        )
-
-        let expected = """
-
-        "oldField": GraphQLField(
-            type: GraphQLString,
-            deprecationReason: \"\"\"
-            Use newField instead
-            \"\"\",
-            resolve: { source, args, context, info in
-                let parent = try cast(source, to: (any GraphQLGenerated.Test).self)
-                let context = try cast(context, to: GraphQLContext.self)
-                return try await parent.oldField(context: context, info: info)
-            }
-        ),
-        """
-
-        #expect(result == expected)
-    }
 
     // MARK: - Resolver Callback Tests
 
@@ -803,7 +267,7 @@ struct SchemaGeneratorTests {
 
         let expected = """
 
-        resolve: { source, args, context, info in
+        fields["posts"]?.resolve = { source, args, context, info in
             let parent = try cast(source, to: (any GraphQLGenerated.User).self)
             let filter = args["filter"] != .undefined ? try decoder.decode((String?).self, from: args["filter"]) : nil
             let context = try cast(context, to: GraphQLContext.self)
@@ -833,7 +297,7 @@ struct SchemaGeneratorTests {
 
         let expected = """
 
-        resolve: { source, args, context, info in
+        fields["user"]?.resolve = { source, args, context, info in
             let id = try decoder.decode((String).self, from: args["id"])
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Query.user(id: id, context: context, info: info)
@@ -859,55 +323,15 @@ struct SchemaGeneratorTests {
 
         let expected = """
 
-        resolve: { source, _, _, _ in
+        fields["messageAdded"]?.resolve = { source, _, _, _ in
             return source
-        },
-        subscribe: { source, args, context, info in
+        }
+        fields["messageAdded"]?.subscribe = { source, args, context, info in
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Subscription.messageAdded(context: context, info: info)
         }
         """
 
         #expect(result == expected)
-    }
-
-    // MARK: - GraphQL Type Reference Tests
-
-    @Test func graphQLTypeReferenceForBuiltInTypes() throws {
-        #expect(try generator.graphQLTypeReference(for: GraphQLString) == "GraphQLString")
-        #expect(try generator.graphQLTypeReference(for: GraphQLInt) == "GraphQLInt")
-        #expect(try generator.graphQLTypeReference(for: GraphQLFloat) == "GraphQLFloat")
-        #expect(try generator.graphQLTypeReference(for: GraphQLBoolean) == "GraphQLBoolean")
-        #expect(try generator.graphQLTypeReference(for: GraphQLID) == "GraphQLID")
-    }
-
-    @Test func graphQLTypeReferenceForNonNull() throws {
-        let nonNullString = GraphQLNonNull(GraphQLString)
-        let result = try generator.graphQLTypeReference(for: nonNullString)
-        #expect(result == "GraphQLNonNull(GraphQLString)")
-    }
-
-    @Test func graphQLTypeReferenceForList() throws {
-        let listOfStrings = GraphQLList(GraphQLString)
-        let result = try generator.graphQLTypeReference(for: listOfStrings)
-        #expect(result == "GraphQLList(GraphQLString)")
-    }
-
-    @Test func graphQLTypeReferenceForNonNullList() throws {
-        let nonNullListOfStrings = GraphQLNonNull(GraphQLList(GraphQLString))
-        let result = try generator.graphQLTypeReference(for: nonNullListOfStrings)
-        #expect(result == "GraphQLNonNull(GraphQLList(GraphQLString))")
-    }
-
-    @Test func graphQLTypeReferenceForListOfNonNull() throws {
-        let listOfNonNullStrings = GraphQLList(GraphQLNonNull(GraphQLString))
-        let result = try generator.graphQLTypeReference(for: listOfNonNullStrings)
-        #expect(result == "GraphQLList(GraphQLNonNull(GraphQLString))")
-    }
-
-    @Test func graphQLTypeReferenceForCustomType() throws {
-        let customType = try GraphQLObjectType(name: "UserProfile")
-        let result = try generator.graphQLTypeReference(for: customType)
-        #expect(result == "userProfile")
     }
 }
