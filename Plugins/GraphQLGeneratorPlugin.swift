@@ -27,9 +27,9 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         let schemaInputs = schemaFiles.map(\.url)
 
         let outputFiles = [
-            outputDirectory.appendingPathComponent("Types.swift"),
-            outputDirectory.appendingPathComponent("Schema.swift"),
-            outputDirectory.appendingPathComponent("SDL.swift"),
+            outputDirectory.appendingPathComponent("BuildGraphQLSchema.swift"),
+            outputDirectory.appendingPathComponent("GraphQLRawSDL.swift"),
+            outputDirectory.appendingPathComponent("GraphQLTypes.swift"),
         ]
 
         let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [

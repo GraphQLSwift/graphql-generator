@@ -53,9 +53,10 @@ type Query {
 
 ### 2. Build Your Project
 
-When you build, the plugin will automatically generate Swift code:
-- `Types.swift` - Swift protocols and types for your GraphQL types. These are all namespaced within `GraphQLGenerated`.
-- `Schema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema
+When you build, the plugin will automatically generate Swift code that you can view in the `.build/plugins/outputs` directory:
+- `BuildGraphQLSchema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema.
+- `GraphQLRawSDL.swift` - The `graphQLRawSDL` global property, which is a Swift string literal of the input schema. This is internally used at runtime to parse the schema.
+- `GraphQLTypes.swift` - Swift protocols and types for your GraphQL types. These are all namespaced within `GraphQLGenerated`.
 
 ### 3. Create required types
 
