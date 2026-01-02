@@ -39,7 +39,7 @@ func swiftTypeReference(for type: GraphQLType, includeNamespace: Bool, nameGener
             return "(any \(baseName))?"
         }
         if let scalarType = namedType as? GraphQLScalarType {
-            let swiftScalar = mapScalarType(scalarType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
+            let swiftScalar = mapScalarType(scalarType, nameGenerator: nameGenerator)
             return "\(swiftScalar)?"
         }
         return "\(baseName)?"
@@ -81,7 +81,7 @@ func swiftTypeDeclaration(for type: GraphQLType, includeNamespace: Bool, nameGen
 ///   - graphQLType: The GraphQL Type to generate a reference to
 ///   - includeNamespace: Whether to include the `GraphQLGenerated` type namespace in the result
 ///   - nameGenerator: The name generator
-func mapScalarType(_ type: GraphQLScalarType, includeNamespace: Bool, nameGenerator: SafeNameGenerator) -> String {
+func mapScalarType(_ type: GraphQLScalarType, nameGenerator: SafeNameGenerator) -> String {
     switch type.name {
     case "ID": return "String"
     case "String": return "String"
@@ -92,39 +92,5 @@ func mapScalarType(_ type: GraphQLScalarType, includeNamespace: Bool, nameGenera
         // For custom scalars, use safe name generator
         let baseName = nameGenerator.swiftTypeName(for: type.name)
         return "GraphQLScalars.\(baseName)"
-    }
-}
-
-/// Converts a Map value to valid Swift code representation
-func mapToSwiftCode(_ map: Map) -> String {
-    switch map {
-    case .undefined:
-        return ".undefined"
-    case .null:
-        return ".null"
-    case let .bool(value):
-        return ".bool(\(value))"
-    case let .number(value):
-        return ".number(Number(\(value)))"
-    case let .string(value):
-        // Escape special characters for Swift string literal
-        let escaped = value
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "\\r")
-            .replacingOccurrences(of: "\t", with: "\\t")
-        return ".string(\"\(escaped)\")"
-    case let .array(values):
-        let elements = values.map { mapToSwiftCode($0) }.joined(separator: ", ")
-        return ".array([\(elements)])"
-    case let .dictionary(dict):
-        let pairs = dict.map { key, value in
-            let escapedKey = key
-                .replacingOccurrences(of: "\\", with: "\\\\")
-                .replacingOccurrences(of: "\"", with: "\\\"")
-            return "\"\(escapedKey)\": \(mapToSwiftCode(value))"
-        }.joined(separator: ", ")
-        return ".dictionary([\(pairs)])"
     }
 }

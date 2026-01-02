@@ -217,7 +217,7 @@ struct TypeGeneratorTests {
                     args: [
                         "baz": .init(
                             type: GraphQLNonNull(scalar)
-                        )
+                        ),
                     ]
                 ),
             ],

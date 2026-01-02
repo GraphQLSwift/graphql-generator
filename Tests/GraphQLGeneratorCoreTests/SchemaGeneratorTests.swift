@@ -245,7 +245,6 @@ struct SchemaGeneratorTests {
         #expect(result == expected)
     }
 
-
     // MARK: - Resolver Callback Tests
 
     @Test func generateResolverCallbackForParent() throws {
