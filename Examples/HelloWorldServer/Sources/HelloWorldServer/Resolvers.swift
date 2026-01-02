@@ -23,7 +23,7 @@ public class GraphQLContext: @unchecked Sendable {
 }
 
 // Scalars must be represented by a Swift type of the same name, conforming to the Scalar protocol
-public struct EmailAddress: Scalar {
+public struct EmailAddress: GraphQLScalar {
     let email: String
 
     init(email: String) {

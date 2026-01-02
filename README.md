@@ -68,7 +68,7 @@ public actor GraphQLContext {
 }
 ```
 
-Create any scalar types (with names matching GraphQL), and conform them to `Scalar`. See the `Scalars` usage section below for details.
+Create any scalar types (with names matching GraphQL), and conform them to `GraphQLScalar`. See the `Scalars` usage section below for details.
 
 Create a resolvers struct with the required typealiases:
 ```swift
@@ -172,12 +172,12 @@ Input object types are modeled as a deterministic Codable struct with the declar
 Enum types are modeled as a deterministic String enum with values matching the declared fields and associated representations. If you need different values or more complex implementations, simply convert to/from a different representation inside your resolvers.
 
 ### Scalar Types
-Scalar types are not modeled by the generator. They are simply referenced using the Scalar's name, and you are expected to implement the required type. Since GraphQL uses a different serialization system than Swift, you must conform the type to Swift's `Codable` and GraphQL's `Scalar`, and have them agree on a representation.
+Scalar types are not modeled by the generator. They are simply referenced using the Scalar's name, and you are expected to implement the required type. Since GraphQL uses a different serialization system than Swift, you must conform the type to Swift's `Codable` and GraphQL's `GraphQLScalar`, and have them agree on a representation.
 
 Below is an example that represents a scalar struct as a raw String:
 
 ```swift
-public struct EmailAddress: Scalar {
+public struct EmailAddress: GraphQLScalar {
     let email: String
 
     init(email: String) {
