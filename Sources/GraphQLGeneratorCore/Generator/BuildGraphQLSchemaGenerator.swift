@@ -2,7 +2,7 @@ import Foundation
 import GraphQL
 
 /// Generates the GraphQL schema builder function
-package struct SchemaGenerator {
+package struct BuildGraphQLSchemaGenerator {
     let nameGenerator: SafeNameGenerator = .idiomatic
 
     package func generate(schema: GraphQLSchema) throws -> String {

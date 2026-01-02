@@ -2,7 +2,7 @@ import Foundation
 import GraphQL
 
 /// Generates Swift type definitions from GraphQL types
-package struct TypeGenerator {
+package struct GraphQLTypesGenerator {
     let nameGenerator: SafeNameGenerator = .idiomatic
 
     package func generate(schema: GraphQLSchema) throws -> String {

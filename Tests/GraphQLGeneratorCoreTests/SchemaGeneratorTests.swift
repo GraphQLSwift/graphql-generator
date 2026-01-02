@@ -4,7 +4,7 @@ import Testing
 
 @Suite
 struct SchemaGeneratorTests {
-    let generator = SchemaGenerator()
+    let generator = BuildGraphQLSchemaGenerator()
 
     @Test func generateSchema() async throws {
         let bar = try GraphQLObjectType(

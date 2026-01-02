@@ -11,9 +11,9 @@ package struct CodeGenerator {
         let schema = try GraphQL.buildSchema(source: source)
 
         var files: [String: String] = [:]
-        files["BuildGraphQLSchema.swift"] = try SchemaGenerator().generate(schema: schema)
-        files["GraphQLRawSDL.swift"] = try SDLGenerator().generate(source: source)
-        files["GraphQLTypes.swift"] = try TypeGenerator().generate(schema: schema)
+        files["BuildGraphQLSchema.swift"] = try BuildGraphQLSchemaGenerator().generate(schema: schema)
+        files["GraphQLRawSDL.swift"] = try GraphQLRawSDLGenerator().generate(source: source)
+        files["GraphQLTypes.swift"] = try GraphQLTypesGenerator().generate(schema: schema)
 
         return files
     }

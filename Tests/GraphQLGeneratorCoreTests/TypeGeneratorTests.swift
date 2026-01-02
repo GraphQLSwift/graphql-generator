@@ -4,7 +4,7 @@ import Testing
 
 @Suite
 struct TypeGeneratorTests {
-    let generator = TypeGenerator()
+    let generator = GraphQLTypesGenerator()
 
     // MARK: - Enum Tests
 
@@ -138,7 +138,7 @@ struct TypeGeneratorTests {
                 ),
             ]
         )
-        let actual = try TypeGenerator().generateInterfaceProtocol(for: interfaceB)
+        let actual = try GraphQLTypesGenerator().generateInterfaceProtocol(for: interfaceB)
         #expect(
             actual == """
 
@@ -184,7 +184,7 @@ struct TypeGeneratorTests {
             ],
             interfaces: [interfaceA]
         )
-        let actual = try TypeGenerator().generateTypeProtocol(
+        let actual = try GraphQLTypesGenerator().generateTypeProtocol(
             for: typeFoo,
             unionTypeMap: [
                 "Foo": [GraphQLUnionType(name: "X", types: [typeFoo])],
@@ -230,7 +230,7 @@ struct TypeGeneratorTests {
                 ),
             ]
         )
-        let actual = try TypeGenerator().generateRootTypeProtocol(for: query)
+        let actual = try GraphQLTypesGenerator().generateRootTypeProtocol(for: query)
         #expect(
             actual == """
 
