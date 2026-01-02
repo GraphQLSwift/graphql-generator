@@ -287,7 +287,6 @@ struct TypeGeneratorTests {
         #expect(result == expected)
     }
 
-
     @Test func generateRootTypeProtocolForSubscription() async throws {
         let subscription = try GraphQLObjectType(
             name: "Subscription",

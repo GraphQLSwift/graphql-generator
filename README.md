@@ -54,7 +54,7 @@ type Query {
 ### 2. Build Your Project
 
 When you build, the plugin will automatically generate Swift code:
-- `Types.swift` - Swift protocols for your GraphQL types
+- `Types.swift` - Swift protocols and types for your GraphQL types. These are all namespaced within `GraphQLGenerated`.
 - `Schema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema
 
 ### 3. Create required types
@@ -81,20 +81,20 @@ struct Resolvers: ResolversProtocol {
 As you build the `Query`, `Mutation`, and `Subscription` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL result, according to its generated protocol:
 
 ```swift
-struct Query: QueryProtocol {
-    // This is required by `QueryProtocol`, and used by GraphQL query resolution.
+struct Query: GraphQLGenerated.Query {
+    // This is required by `GraphQLGenerated.Query`, and used by GraphQL query resolution.
     static func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any UserProtocol)? {
         // You can implement resolution logic however you like.
         return context.user
     }
 }
 
-struct User: UserProtocol {
+struct User: GraphQLGenerated.User {
     // You can define the type internals however you like
     let name: String
     let email: String
 
-    // These are required by `UserProtocol`, and used by GraphQL field resolution.
+    // These are required by `GraphQLGenerated.User`, and used by GraphQL field resolution.
     func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return name
     }
@@ -119,6 +119,8 @@ print(result)
 
 ## Design
 
+All generated types other than `GraphQLContext` and scalar types are namespaced inside of `GraphQLGenerated` to minimize polluting the inheriting package's type namespace.
+
 ### Root Types
 Root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method requirements for each field. The user must implement these types and provide them to the `buildGraphQLSchema` function.
 
@@ -134,26 +136,27 @@ type A {
 
 This would result in the following protocol:
 ```swift
-public protocol AProtocol: Sendable {
+public protocol A: Sendable {
     func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 }
 ```
 
 You could define two conforming types. To use `ATest` in tests, simply return it from the relevant resolvers.
 ```swift
-struct A: AProtocol {
+struct A: GraphQLGenerated.A {
     let foo: String
     func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return foo
     }
 }
-struct ATest: AProtocol {
+struct ATest: GraphQLGenerated.A {
     func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return "test"
     }
 }
 ```
 
+Also, by not providing default resolvers based on reflection of the type's properties, we improve performance and setup the inheriting package up well for evolving the schema over time.
 
 ### Interface Types
 Interfaces are modeled as a protocol with required methods for each relevant field. Implementing objects and interfaces are marked as requiring conformance to the interface protocol.
@@ -214,10 +217,8 @@ public struct EmailAddress: Scalar {
 
 ## Development Roadmap
 
-1. Generated Object namespacing: Especially for Input types, which are commonly suffixed with `Input`, creating `XInputInput` structs. Also, we should minimize interference with the user's namespace as much as possible.
-2. Directives: Directives are currently not supported
-3. Enhanced configuration: There should be configuration options for the build plugin itself
-4. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
+1. Directives: Directives are currently not supported
+2. Executable Schema: To work around the immutability of some Schema components, we generate Swift code to fully recreate the defined schema. Instead, we could just add resolver logic to the schema parsed from the `.graphql` file SDL.
 
 ## Contributing
 

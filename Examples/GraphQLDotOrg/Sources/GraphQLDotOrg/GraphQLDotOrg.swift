@@ -1,5 +1,5 @@
 // Pacakge must define `GraphQLContext` type
-actor GraphQLContext { }
+actor GraphQLContext {}
 
 // The rest of the types should be implemented:
 

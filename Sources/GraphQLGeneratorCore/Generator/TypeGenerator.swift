@@ -23,21 +23,21 @@ package struct TypeGenerator {
             protocol Resolvers: Sendable {
         """
         if let queryType = schema.queryType {
-            output += """
+            try output += """
 
-                    associatedtype Query: \(try swiftTypeDeclaration(for: queryType, includeNamespace: true, nameGenerator: nameGenerator))
+                    associatedtype Query: \(swiftTypeDeclaration(for: queryType, includeNamespace: true, nameGenerator: nameGenerator))
             """
         }
         if let mutationType = schema.mutationType {
-            output += """
+            try output += """
 
-                    associatedtype Mutation: \(try swiftTypeDeclaration(for: mutationType, includeNamespace: true, nameGenerator: nameGenerator))
+                    associatedtype Mutation: \(swiftTypeDeclaration(for: mutationType, includeNamespace: true, nameGenerator: nameGenerator))
             """
         }
         if let subscriptionType = schema.subscriptionType {
-            output += """
+            try output += """
 
-                    associatedtype Subscription: \(try swiftTypeDeclaration(for: subscriptionType, includeNamespace: true, nameGenerator: nameGenerator))
+                    associatedtype Subscription: \(swiftTypeDeclaration(for: subscriptionType, includeNamespace: true, nameGenerator: nameGenerator))
             """
         }
         output += """
