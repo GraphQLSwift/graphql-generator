@@ -3,7 +3,7 @@ import GraphQL
 import GraphQLGeneratorRuntime
 
 // Must be created by user and named `GraphQLContext`.
-public class GraphQLContext: @unchecked Sendable {
+class GraphQLContext: @unchecked Sendable {
     // User can choose structure
     var users: [String: User]
     var posts: [String: Post]
@@ -23,7 +23,7 @@ public class GraphQLContext: @unchecked Sendable {
 }
 
 // Scalars must be represented by a Swift type of the same name, conforming to the Scalar protocol
-public struct EmailAddress: GraphQLScalar {
+struct EmailAddress: GraphQLScalar {
     let email: String
 
     init(email: String) {
@@ -31,20 +31,20 @@ public struct EmailAddress: GraphQLScalar {
     }
 
     // Codability conformance. Required for usage in InputObject
-    public init(from decoder: any Decoder) throws {
+    init(from decoder: any Decoder) throws {
         email = try decoder.singleValueContainer().decode(String.self)
     }
 
-    public func encode(to encoder: any Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         try email.encode(to: encoder)
     }
 
     // Scalar conformance. Not necessary, but default methods are very inefficient.
-    public static func serialize(this: Self) throws -> Map {
+    static func serialize(this: Self) throws -> Map {
         return .string(this.email)
     }
 
-    public static func parseValue(map: Map) throws -> Map {
+    static func parseValue(map: Map) throws -> Map {
         switch map {
         case .string:
             return map
@@ -53,7 +53,7 @@ public struct EmailAddress: GraphQLScalar {
         }
     }
 
-    public static func parseLiteral(value: any Value) throws -> Map {
+    static func parseLiteral(value: any Value) throws -> Map {
         guard let ast = value as? StringValue else {
             throw GraphQLError(
                 message: "EmailAddress cannot represent non-string value: \(print(ast: value))",

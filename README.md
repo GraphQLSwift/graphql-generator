@@ -63,7 +63,7 @@ When you build, the plugin will automatically generate Swift code that you can v
 Create a type named `GraphQLContext`:
 
 ```swift
-public actor GraphQLContext {
+actor GraphQLContext {
     // Add any features you like
 }
 ```
@@ -137,7 +137,7 @@ type A {
 
 This would result in the following protocol:
 ```swift
-public protocol A: Sendable {
+protocol A: Sendable {
     func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
 }
 ```
@@ -177,7 +177,7 @@ Scalar types are not modeled by the generator. They are simply referenced using 
 Below is an example that represents a scalar struct as a raw String:
 
 ```swift
-public struct EmailAddress: GraphQLScalar {
+struct EmailAddress: GraphQLScalar {
     let email: String
 
     init(email: String) {
@@ -185,18 +185,18 @@ public struct EmailAddress: GraphQLScalar {
     }
 
     // Codability conformance. Represent simply as `email` string.
-    public init(from decoder: any Decoder) throws {
+    init(from decoder: any Decoder) throws {
         self.email = try decoder.singleValueContainer().decode(String.self)
     }
-    public func encode(to encoder: any Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         try self.email.encode(to: encoder)
     }
 
     // Scalar conformance. Parse & serialize simply as `email` string.
-    public static func serialize(this: Self) throws -> Map {
+    static func serialize(this: Self) throws -> Map {
         return .string(this.email)
     }
-    public static func parseValue(map: Map) throws -> Map {
+    static func parseValue(map: Map) throws -> Map {
         switch map {
         case .string:
             return map
@@ -204,7 +204,7 @@ public struct EmailAddress: GraphQLScalar {
             throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
         }
     }
-    public static func parseLiteral(value: any Value) throws -> Map {
+    static func parseLiteral(value: any Value) throws -> Map {
         guard let ast = value as? StringValue else {
             throw GraphQLError(
                 message: "EmailAddress cannot represent non-string value: \(print(ast: value))",
