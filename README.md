@@ -68,11 +68,11 @@ actor GraphQLContext {
 }
 ```
 
-Create any scalar types (with names matching GraphQL), and conform them to `GraphQLScalar`. See the `Scalars` usage section below for details.
+If your schema has any custom scalar types, you must create them manually in the `GraphQLScalars` namespace. See the `Scalars` usage section below for details.
 
 Create a resolvers struct with the required typealiases:
 ```swift
-struct Resolvers: ResolversProtocol {
+struct Resolvers: GraphQLGenerated.Resolvers {
     typealias Query = ExamplePackage.Query
     typealias Mutation = ExamplePackage.Mutation
     typealias Subscription = ExamplePackage.Subscription
@@ -84,7 +84,7 @@ As you build the `Query`, `Mutation`, and `Subscription` types and their resolut
 ```swift
 struct Query: GraphQLGenerated.Query {
     // This is required by `GraphQLGenerated.Query`, and used by GraphQL query resolution.
-    static func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any UserProtocol)? {
+    static func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any GraphQLGenerated.User)? {
         // You can implement resolution logic however you like.
         return context.user
     }
@@ -99,9 +99,9 @@ struct User: GraphQLGenerated.User {
     func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return name
     }
-    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> EmailAddress {
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
         // You can implement resolution logic however you like.
-        return EmailAddress(email: self.email)
+        return .init(email: self.email)
     }
 }
 ```
@@ -123,7 +123,7 @@ print(result)
 All generated types other than `GraphQLContext` and scalar types are namespaced inside of `GraphQLGenerated` to minimize polluting the inheriting package's type namespace.
 
 ### Root Types
-Root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method requirements for each field. The user must implement these types and provide them to the `buildGraphQLSchema` function.
+Root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method requirements for each field. The user must implement these types and provide them to the `buildGraphQLSchema` function via the `Resolvers` typealiases.
 
 ### Object Types
 Object types are modeled as Swift protocols with instance method requirements for each field. This is to enable maximum implementation flexibility. Internally, GraphQL passes result objects directly through to subsequent resolvers. By only specifying the interface, we allow the backing types to be incredibly dynamic - they can be simple codable structs or complex stateful actors, reference or values types, or any other type configuration.
@@ -166,52 +166,52 @@ Interfaces are modeled as a protocol with required methods for each relevant fie
 Union types are modeled as a marker protocol, with no required properties or functions. Related objects are marked as requiring conformance to the union protocol.
 
 ### Input Object Types
-Input object types are modeled as a deterministic Codable struct with the declared fields. If more complex objects must be created from the codable struct, this can be done in the resolver itself, since input objects only relevant for their associated resolver (they are not passed to downstream resolvers).
+Input object types are modeled as a deterministic Codable struct with the declared fields. If more complex objects must be created from the codable struct, this can be done in the resolver itself, since input objects are only relevant for their associated resolver (they are not passed to downstream resolvers).
 
 ### Enum Types
 Enum types are modeled as a deterministic String enum with values matching the declared fields and associated representations. If you need different values or more complex implementations, simply convert to/from a different representation inside your resolvers.
 
 ### Scalar Types
-Scalar types are not modeled by the generator. They are simply referenced using the Scalar's name, and you are expected to implement the required type. Since GraphQL uses a different serialization system than Swift, you must conform the type to Swift's `Codable` and GraphQL's `GraphQLScalar`, and have them agree on a representation.
-
-Below is an example that represents a scalar struct as a raw String:
+Scalar types are not modeled by the generator. They are simply referenced as `GraphQLScalars.<name>`, and you are expected to implement the required type, and conform it to `GraphQLScalar`. Since GraphQL uses a different serialization system than Swift, you should be sure that the type's conformance to Swift's `Codable` and GraphQL's `GraphQLScalar` agree on a representation. Below is an example that represents a scalar struct as a raw String:
 
 ```swift
-struct EmailAddress: GraphQLScalar {
-    let email: String
+extension GraphQLScalars {
+    struct EmailAddress: GraphQLScalar {
+        let email: String
 
-    init(email: String) {
-        self.email = email
-    }
-
-    // Codability conformance. Represent simply as `email` string.
-    init(from decoder: any Decoder) throws {
-        self.email = try decoder.singleValueContainer().decode(String.self)
-    }
-    func encode(to encoder: any Encoder) throws {
-        try self.email.encode(to: encoder)
-    }
-
-    // Scalar conformance. Parse & serialize simply as `email` string.
-    static func serialize(this: Self) throws -> Map {
-        return .string(this.email)
-    }
-    static func parseValue(map: Map) throws -> Map {
-        switch map {
-        case .string:
-            return map
-        default:
-            throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
+        init(email: String) {
+            self.email = email
         }
-    }
-    static func parseLiteral(value: any Value) throws -> Map {
-        guard let ast = value as? StringValue else {
-            throw GraphQLError(
-                message: "EmailAddress cannot represent non-string value: \(print(ast: value))",
-                nodes: [value]
-            )
+
+        // Codability conformance. Represent simply as `email` string.
+        init(from decoder: any Decoder) throws {
+            self.email = try decoder.singleValueContainer().decode(String.self)
         }
-        return .string(ast.value)
+        func encode(to encoder: any Encoder) throws {
+            try self.email.encode(to: encoder)
+        }
+
+        // Scalar conformance. Parse & serialize simply as `email` string.
+        static func serialize(this: Self) throws -> Map {
+            return .string(this.email)
+        }
+        static func parseValue(map: Map) throws -> Map {
+            switch map {
+            case .string:
+                return map
+            default:
+                throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
+            }
+        }
+        static func parseLiteral(value: any Value) throws -> Map {
+            guard let ast = value as? StringValue else {
+                throw GraphQLError(
+                    message: "EmailAddress cannot represent non-string value: \(print(ast: value))",
+                    nodes: [value]
+                )
+            }
+            return .string(ast.value)
+        }
     }
 }
 ```

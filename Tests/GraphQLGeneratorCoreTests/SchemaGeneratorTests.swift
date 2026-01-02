@@ -249,10 +249,12 @@ struct SchemaGeneratorTests {
     // MARK: - Resolver Callback Tests
 
     @Test func generateResolverCallbackForParent() throws {
+        let scalar = try GraphQLScalarType(name: "Scalar")
         let field = GraphQLField(
             type: GraphQLString,
             args: [
                 "filter": GraphQLArgument(type: GraphQLString),
+                "scalar": GraphQLArgument(type: GraphQLNonNull(scalar)),
             ]
         )
 
@@ -270,8 +272,9 @@ struct SchemaGeneratorTests {
         fields["posts"]?.resolve = { source, args, context, info in
             let parent = try cast(source, to: (any GraphQLGenerated.User).self)
             let filter = args["filter"] != .undefined ? try decoder.decode((String?).self, from: args["filter"]) : nil
+            let scalar = try decoder.decode((GraphQLScalars.Scalar).self, from: args["scalar"])
             let context = try cast(context, to: GraphQLContext.self)
-            return try await parent.posts(filter: filter, context: context, info: info)
+            return try await parent.posts(filter: filter, scalar: scalar, context: context, info: info)
         }
         """
 

@@ -37,8 +37,9 @@ func swiftTypeReference(for type: GraphQLType, includeNamespace: Bool, nameGener
         if namedType is GraphQLUnionType || namedType is GraphQLInterfaceType || namedType is GraphQLObjectType {
             // These are all interfaces, so we must wrap them in 'any' and parentheses for optionals.
             return "(any \(baseName))?"
-        } else if namedType is GraphQLScalarType {
-            let swiftScalar = mapScalarType(namedType.name, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
+        }
+        if let scalarType = namedType as? GraphQLScalarType {
+            let swiftScalar = mapScalarType(scalarType, includeNamespace: includeNamespace, nameGenerator: nameGenerator)
             return "\(swiftScalar)?"
         }
         return "\(baseName)?"
@@ -80,8 +81,8 @@ func swiftTypeDeclaration(for type: GraphQLType, includeNamespace: Bool, nameGen
 ///   - graphQLType: The GraphQL Type to generate a reference to
 ///   - includeNamespace: Whether to include the `GraphQLGenerated` type namespace in the result
 ///   - nameGenerator: The name generator
-func mapScalarType(_ graphQLType: String, includeNamespace: Bool, nameGenerator: SafeNameGenerator) -> String {
-    switch graphQLType {
+func mapScalarType(_ type: GraphQLScalarType, includeNamespace: Bool, nameGenerator: SafeNameGenerator) -> String {
+    switch type.name {
     case "ID": return "String"
     case "String": return "String"
     case "Int": return "Int"
@@ -89,11 +90,8 @@ func mapScalarType(_ graphQLType: String, includeNamespace: Bool, nameGenerator:
     case "Boolean": return "Bool"
     default:
         // For custom scalars, use safe name generator
-        var name = nameGenerator.swiftTypeName(for: graphQLType)
-        if includeNamespace {
-            name = "GraphQLGenerated.\(name)"
-        }
-        return name
+        let baseName = nameGenerator.swiftTypeName(for: type.name)
+        return "GraphQLScalars.\(baseName)"
     }
 }
 

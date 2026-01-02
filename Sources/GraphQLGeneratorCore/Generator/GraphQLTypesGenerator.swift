@@ -14,10 +14,7 @@ package struct GraphQLTypesGenerator {
         import GraphQL
         import GraphQLGeneratorRuntime
 
-        """
-
-        // Generate Resolvers protocol
-        output += """
+        enum GraphQLScalars { }
 
         enum GraphQLGenerated {
             protocol Resolvers: Sendable {

@@ -22,45 +22,48 @@ class GraphQLContext: @unchecked Sendable {
     }
 }
 
-// Scalars must be represented by a Swift type of the same name, conforming to the Scalar protocol
-struct EmailAddress: GraphQLScalar {
-    let email: String
+// Scalars must be represented by a Swift type of the same name in the GraphQLScalars namespace, conforming to
+// the GraphQLScalar protocol
+extension GraphQLScalars {
+    struct EmailAddress: GraphQLScalar {
+        let email: String
 
-    init(email: String) {
-        self.email = email
-    }
-
-    // Codability conformance. Required for usage in InputObject
-    init(from decoder: any Decoder) throws {
-        email = try decoder.singleValueContainer().decode(String.self)
-    }
-
-    func encode(to encoder: any Encoder) throws {
-        try email.encode(to: encoder)
-    }
-
-    // Scalar conformance. Not necessary, but default methods are very inefficient.
-    static func serialize(this: Self) throws -> Map {
-        return .string(this.email)
-    }
-
-    static func parseValue(map: Map) throws -> Map {
-        switch map {
-        case .string:
-            return map
-        default:
-            throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
+        init(email: String) {
+            self.email = email
         }
-    }
 
-    static func parseLiteral(value: any Value) throws -> Map {
-        guard let ast = value as? StringValue else {
-            throw GraphQLError(
-                message: "EmailAddress cannot represent non-string value: \(print(ast: value))",
-                nodes: [value]
-            )
+        // Codability conformance. Required for usage in InputObject
+        init(from decoder: any Decoder) throws {
+            email = try decoder.singleValueContainer().decode(String.self)
         }
-        return .string(ast.value)
+
+        func encode(to encoder: any Encoder) throws {
+            try email.encode(to: encoder)
+        }
+
+        // Scalar conformance. Not necessary, but default methods are very inefficient.
+        static func serialize(this: Self) throws -> Map {
+            return .string(this.email)
+        }
+
+        static func parseValue(map: Map) throws -> Map {
+            switch map {
+            case .string:
+                return map
+            default:
+                throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
+            }
+        }
+
+        static func parseLiteral(value: any Value) throws -> Map {
+            guard let ast = value as? StringValue else {
+                throw GraphQLError(
+                    message: "EmailAddress cannot represent non-string value: \(print(ast: value))",
+                    nodes: [value]
+                )
+            }
+            return .string(ast.value)
+        }
     }
 }
 
@@ -88,8 +91,8 @@ struct User: GraphQLGenerated.User {
         return name
     }
 
-    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> EmailAddress {
-        return EmailAddress(email: email)
+    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+        return .init(email: email)
     }
 
     func age(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> Int? {
@@ -106,8 +109,8 @@ struct Contact: GraphQLGenerated.Contact {
     let email: String
 
     // Required implementations
-    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> EmailAddress {
-        return EmailAddress(email: email)
+    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+        return .init(email: email)
     }
 }
 

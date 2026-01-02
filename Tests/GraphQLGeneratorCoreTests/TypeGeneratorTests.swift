@@ -108,6 +108,35 @@ struct TypeGeneratorTests {
         #expect(result == expected)
     }
 
+    @Test func generateInputStructWithCustomScalar() throws {
+        let phoneNumber: GraphQLScalarType = try GraphQLScalarType(
+            name: "PhoneNumber"
+        )
+        let personInput = try GraphQLInputObjectType(
+            name: "PersonInput"
+        )
+        personInput.fields = {
+            [
+                "cellPhone": InputObjectField(type: GraphQLNonNull(phoneNumber)),
+                "homePhone": InputObjectField(type: phoneNumber),
+                "familyPhones": InputObjectField(type: GraphQLList(phoneNumber)),
+            ]
+        }
+
+        let result = try generator.generateInputStruct(for: personInput)
+
+        let expected = """
+
+        struct PersonInput: Codable, Sendable {
+            let cellPhone: GraphQLScalars.PhoneNumber
+            let homePhone: GraphQLScalars.PhoneNumber?
+            let familyPhones: [GraphQLScalars.PhoneNumber]?
+        }
+        """
+
+        #expect(result == expected)
+    }
+
     @Test func generateInterfaceProtocol() async throws {
         let interfaceA = try GraphQLInterfaceType(
             name: "A",
@@ -160,6 +189,7 @@ struct TypeGeneratorTests {
             name: "A",
             description: "A"
         )
+        let scalar = try GraphQLScalarType(name: "Scalar")
         let typeFoo = try GraphQLObjectType(
             name: "Foo",
             description: "Foo",
@@ -181,6 +211,15 @@ struct TypeGeneratorTests {
                         ),
                     ]
                 ),
+                "baz": .init(
+                    type: scalar,
+                    description: "baz",
+                    args: [
+                        "baz": .init(
+                            type: GraphQLNonNull(scalar)
+                        )
+                    ]
+                ),
             ],
             interfaces: [interfaceA]
         )
@@ -200,6 +239,9 @@ struct TypeGeneratorTests {
 
                 /// bar
                 func bar(foo: String, bar: String?, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String?
+
+                /// baz
+                func baz(baz: GraphQLScalars.Scalar, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.Scalar?
 
             }
             """
