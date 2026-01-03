@@ -10,7 +10,7 @@ let package = Package(
     dependencies: [
         .package(name: "graphql-generator", path: "../.."),
         // TODO: Mainline when merged: https://github.com/GraphQLSwift/GraphQL/pull/174
-        .package(url: "https://github.com/NeedleInAJayStack/GraphQL.git", revision: "44bdda71e28b59201dd4fe4178eddbffba748394"),
+        .package(url: "https://github.com/NeedleInAJayStack/GraphQL.git", revision: "42ac35a0f69b9ffffcf9d02398c0b13d0c0e71aa"),
     ],
     targets: [
         .target(
