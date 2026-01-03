@@ -1,13 +1,13 @@
 {
-  "originHash" : "eb57461e78e402360fb2a1deaab20d1947d9aa4ae36eaad2f9b806ef82750c4a",
+  "originHash" : "0b104106c14ed80747d129d8a009bead40d06d68c43d690c3ae5efb52a4bcc94",
   "pins" : [
     {
       "identity" : "graphql",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/GraphQLSwift/GraphQL.git",
       "state" : {
-        "revision" : "6e483aec1a8f86f7fee95b1f72e678bdf0e537a4",
-        "version" : "4.0.3"
+        "revision" : "397c0f43a1eb6a401858f896263288375efcf0bd",
+        "version" : "4.1.0"
       }
     },
     {

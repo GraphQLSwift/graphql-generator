@@ -96,32 +96,34 @@ package struct BuildGraphQLSchemaGenerator {
     }
 
     func generateInterfaceType(for type: GraphQLInterfaceType) throws -> String {
-        let variableName = nameGenerator.swiftMemberName(for: type.name)
+        let typeName = nameGenerator.swiftMemberName(for: type.name)
+        let variableName = "\(typeName)Fields"
 
         var output = """
 
-        let \(variableName)Fields = try (schema.typeMap["\(type.name)"] as? GraphQLInterfaceType)?.fields() ?? [:]
-        (schema.typeMap["\(type.name)"] as? GraphQLInterfaceType)?.fields = {
-            var fields = \(variableName)Fields
+        let \(typeName) = schema.typeMap["\(type.name)"] as? GraphQLObjectType
+        let \(variableName) = try \(typeName)?.fields() ?? [:]
         """
 
         // Generate fields
         let fields = try type.fields()
         for (fieldName, field) in fields {
-            output += try"""
+            output += try """
 
             \(generateResolverCallback(
+                variableName: variableName,
                 fieldName: fieldName,
                 field: field,
                 target: .parent,
                 parentType: type
-            ).indent(1))
+            ))
             """
         }
 
         output += """
 
-            return fields
+        \(typeName)?.fields = {
+            return \(variableName)
         }
         """
 
@@ -129,42 +131,44 @@ package struct BuildGraphQLSchemaGenerator {
     }
 
     func generateObjectType(for type: GraphQLObjectType, target: ResolverTarget) throws -> String {
+        let typeName = nameGenerator.swiftMemberName(for: type.name)
         let variableName: String
         switch target {
         case .query:
-            variableName = "query"
+            variableName = "queryFields"
         case .mutation:
-            variableName = "mutation"
+            variableName = "mutationFields"
         case .subscription:
-            variableName = "subscription"
+            variableName = "subscriptionFields"
         case .parent:
-            variableName = nameGenerator.swiftMemberName(for: type.name)
+            variableName = "\(typeName)Fields"
         }
 
         var output = """
 
-        let \(variableName)Fields = try (schema.typeMap["\(type.name)"] as? GraphQLObjectType)?.fields() ?? [:]
-        (schema.typeMap["\(type.name)"] as? GraphQLObjectType)?.fields = {
-            var fields = \(variableName)Fields
+        let \(typeName) = schema.typeMap["\(type.name)"] as? GraphQLObjectType
+        let \(variableName) = try \(typeName)?.fields() ?? [:]
         """
 
         // Generate fields
         let fields = try type.fields()
         for (fieldName, field) in fields {
-            output += try"""
+            output += try """
 
             \(generateResolverCallback(
+                variableName: variableName,
                 fieldName: fieldName,
                 field: field,
                 target: target,
                 parentType: type
-            ).indent(1))
+            ))
             """
         }
 
         output += """
 
-            return fields
+        \(typeName)?.fields = {
+            return \(variableName)
         }
         """
 
@@ -172,6 +176,7 @@ package struct BuildGraphQLSchemaGenerator {
     }
 
     func generateResolverCallback(
+        variableName: String,
         fieldName: String,
         field: GraphQLField,
         target: ResolverTarget,
@@ -181,16 +186,14 @@ package struct BuildGraphQLSchemaGenerator {
 
         if target == .subscription {
             output += """
-
-            fields["\(fieldName)"]?.resolve = { source, _, _, _ in
+            \(variableName)["\(fieldName)"]?.resolve = { source, _, _, _ in
                 return source
             }
-            fields["\(fieldName)"]?.subscribe = { source, args, context, info in
+            \(variableName)["\(fieldName)"]?.subscribe = { source, args, context, info in
             """
         } else {
             output += """
-
-            fields["\(fieldName)"]?.resolve = { source, args, context, info in
+            \(variableName)["\(fieldName)"]?.resolve = { source, args, context, info in
             """
         }
 
