@@ -6,9 +6,11 @@ A Swift package plugin that generates server-side GraphQL API code from GraphQL 
 
 ## Features
 
+- **Data-driven**: Guarantee conformance with declared GraphQL spec
 - **Build-time code generation**: Code is generated at build time and doesn't need to be committed
 - **Type-safe**: Leverages Swift's type system for compile-time safety
 - **Minimal boilerplate**: Generates all GraphQL definition code - you write the business logic
+- **Flexible**: Makes no assumptions about backing data types other than GraphQL type conformance
 
 ## Installation
 
@@ -16,7 +18,7 @@ Add the package to your `Package.swift`. Be sure to add the `GraphQLGeneratorRun
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.0.0"),
+    .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.1.0"),
     .package(url: "https://github.com/GraphQLSwift/graphql-generator", from: "1.0.0")
 ],
 targets: [
@@ -83,9 +85,9 @@ As you build the `Query`, `Mutation`, and `Subscription` types and their resolut
 
 ```swift
 struct Query: GraphQLGenerated.Query {
-    // This is required by `GraphQLGenerated.Query`, and used by GraphQL query resolution.
+    // This is required by `GraphQLGenerated.Query`, and used by GraphQL query resolution
     static func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any GraphQLGenerated.User)? {
-        // You can implement resolution logic however you like.
+        // You can implement resolution logic however you like
         return context.user
     }
 }
@@ -95,12 +97,12 @@ struct User: GraphQLGenerated.User {
     let name: String
     let email: String
 
-    // These are required by `GraphQLGenerated.User`, and used by GraphQL field resolution.
+    // These are required by `GraphQLGenerated.User`, and used by GraphQL field resolution
     func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
         return name
     }
     func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
-        // You can implement resolution logic however you like.
+        // You can implement resolution logic however you like
         return .init(email: self.email)
     }
 }
@@ -111,9 +113,10 @@ struct User: GraphQLGenerated.User {
 ```swift
 import GraphQL
 
+// Build the auto-generated schema
 let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
 
-// Execute a query
+// Execute a query against it
 let result = try await graphql(schema: schema, request: "{ users { name email } }")
 print(result)
 ```
@@ -218,8 +221,5 @@ extension GraphQLScalars {
 
 ## Development Roadmap
 
-1. Directives: Directives are currently not supported
-
-## Contributing
-
-This project is in active development. Contributions are welcome!
+1. Add Directive support
+2. Add configuration to reference different `.graphql` source file locations.
