@@ -1,3 +1,5 @@
+# Source: https://graphql.org/graphql
+
 schema {
   query: Root
 }
@@ -1164,4 +1166,3 @@ type VehiclesEdge {
   """A cursor for use in pagination"""
   cursor: String!
 }
-
