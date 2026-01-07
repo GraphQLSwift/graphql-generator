@@ -184,16 +184,17 @@ package struct BuildGraphQLSchemaGenerator {
     ) throws -> String {
         var output = ""
 
+        // TODO: Swift 6.0 requires `@Sendable` explicitly here. We can remove it when we drop 6.0 support.
         if target == .subscription {
             output += """
-            \(variableName)["\(fieldName)"]?.resolve = { source, _, _, _ in
+            \(variableName)["\(fieldName)"]?.resolve = { @Sendable source, _, _, _ in
                 return source
             }
-            \(variableName)["\(fieldName)"]?.subscribe = { source, args, context, info in
+            \(variableName)["\(fieldName)"]?.subscribe = { @Sendable source, args, context, info in
             """
         } else {
             output += """
-            \(variableName)["\(fieldName)"]?.resolve = { source, args, context, info in
+            \(variableName)["\(fieldName)"]?.resolve = { @Sendable source, args, context, info in
             """
         }
 
