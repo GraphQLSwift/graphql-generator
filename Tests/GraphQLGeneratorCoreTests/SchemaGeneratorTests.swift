@@ -54,7 +54,7 @@ struct SchemaGeneratorTests {
 
             let bar = schema.typeMap["Bar"] as? GraphQLObjectType
             let barFields = try bar?.fields() ?? [:]
-            barFields["foo"]?.resolve = { source, args, context, info in
+            barFields["foo"]?.resolve = { @Sendable source, args, context, info in
                 let parent = try cast(source, to: (any GraphQLGenerated.Bar).self)
                 let context = try cast(context, to: GraphQLContext.self)
                 return try await parent.foo(context: context, info: info)
@@ -65,11 +65,11 @@ struct SchemaGeneratorTests {
 
             let query = schema.typeMap["Query"] as? GraphQLObjectType
             let queryFields = try query?.fields() ?? [:]
-            queryFields["foo"]?.resolve = { source, args, context, info in
+            queryFields["foo"]?.resolve = { @Sendable source, args, context, info in
                 let context = try cast(context, to: GraphQLContext.self)
                 return try await Resolvers.Query.foo(context: context, info: info)
             }
-            queryFields["bar"]?.resolve = { source, args, context, info in
+            queryFields["bar"]?.resolve = { @Sendable source, args, context, info in
                 let context = try cast(context, to: GraphQLContext.self)
                 return try await Resolvers.Query.bar(context: context, info: info)
             }
@@ -103,7 +103,7 @@ struct SchemaGeneratorTests {
 
         let node = schema.typeMap["Node"] as? GraphQLObjectType
         let nodeFields = try node?.fields() ?? [:]
-        nodeFields["id"]?.resolve = { source, args, context, info in
+        nodeFields["id"]?.resolve = { @Sendable source, args, context, info in
             let parent = try cast(source, to: (any GraphQLGenerated.Node).self)
             let context = try cast(context, to: GraphQLContext.self)
             return try await parent.id(context: context, info: info)
@@ -136,12 +136,12 @@ struct SchemaGeneratorTests {
 
         let book = schema.typeMap["Book"] as? GraphQLObjectType
         let bookFields = try book?.fields() ?? [:]
-        bookFields["title"]?.resolve = { source, args, context, info in
+        bookFields["title"]?.resolve = { @Sendable source, args, context, info in
             let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
             let context = try cast(context, to: GraphQLContext.self)
             return try await parent.title(context: context, info: info)
         }
-        bookFields["author"]?.resolve = { source, args, context, info in
+        bookFields["author"]?.resolve = { @Sendable source, args, context, info in
             let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
             let context = try cast(context, to: GraphQLContext.self)
             return try await parent.author(context: context, info: info)
@@ -172,7 +172,7 @@ struct SchemaGeneratorTests {
 
         let query = schema.typeMap["Query"] as? GraphQLObjectType
         let queryFields = try query?.fields() ?? [:]
-        queryFields["user"]?.resolve = { source, args, context, info in
+        queryFields["user"]?.resolve = { @Sendable source, args, context, info in
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Query.user(context: context, info: info)
         }
@@ -201,7 +201,7 @@ struct SchemaGeneratorTests {
 
         let mutation = schema.typeMap["Mutation"] as? GraphQLObjectType
         let mutationFields = try mutation?.fields() ?? [:]
-        mutationFields["createUser"]?.resolve = { source, args, context, info in
+        mutationFields["createUser"]?.resolve = { @Sendable source, args, context, info in
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Mutation.createUser(context: context, info: info)
         }
@@ -230,10 +230,10 @@ struct SchemaGeneratorTests {
 
         let subscription = schema.typeMap["Subscription"] as? GraphQLObjectType
         let subscriptionFields = try subscription?.fields() ?? [:]
-        subscriptionFields["userUpdated"]?.resolve = { source, _, _, _ in
+        subscriptionFields["userUpdated"]?.resolve = { @Sendable source, _, _, _ in
             return source
         }
-        subscriptionFields["userUpdated"]?.subscribe = { source, args, context, info in
+        subscriptionFields["userUpdated"]?.subscribe = { @Sendable source, args, context, info in
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Subscription.userUpdated(context: context, info: info)
         }
@@ -268,7 +268,7 @@ struct SchemaGeneratorTests {
         )
 
         let expected = """
-        queryFields["posts"]?.resolve = { source, args, context, info in
+        queryFields["posts"]?.resolve = { @Sendable source, args, context, info in
             let parent = try cast(source, to: (any GraphQLGenerated.User).self)
             let filter = args["filter"] != .undefined ? try decoder.decode((String?).self, from: args["filter"]) : nil
             let scalar = try decoder.decode((GraphQLScalars.Scalar).self, from: args["scalar"])
@@ -299,7 +299,7 @@ struct SchemaGeneratorTests {
         )
 
         let expected = """
-        queryFields["user"]?.resolve = { source, args, context, info in
+        queryFields["user"]?.resolve = { @Sendable source, args, context, info in
             let id = try decoder.decode((String).self, from: args["id"])
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Query.user(id: id, context: context, info: info)
@@ -325,10 +325,10 @@ struct SchemaGeneratorTests {
         )
 
         let expected = """
-        subscriptionFields["messageAdded"]?.resolve = { source, _, _, _ in
+        subscriptionFields["messageAdded"]?.resolve = { @Sendable source, _, _, _ in
             return source
         }
-        subscriptionFields["messageAdded"]?.subscribe = { source, args, context, info in
+        subscriptionFields["messageAdded"]?.subscribe = { @Sendable source, args, context, info in
             let context = try cast(context, to: GraphQLContext.self)
             return try await Resolvers.Subscription.messageAdded(context: context, info: info)
         }
