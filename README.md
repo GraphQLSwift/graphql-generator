@@ -2,11 +2,11 @@
 
 # GraphQL Generator for Swift
 
-A Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema) and [Swift's OpenAPI Generator](https://github.com/apple/swift-openapi-generator).
+This is a Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema) and [Swift's OpenAPI Generator](https://github.com/apple/swift-openapi-generator).
 
 ## Features
 
-- **Data-driven**: Guarantee conformance with declared GraphQL spec
+- **Data-driven**: Guarantee conformance with the declared GraphQL spec
 - **Build-time code generation**: Code is generated at build time and doesn't need to be committed
 - **Type-safe**: Leverages Swift's type system for compile-time safety
 - **Minimal boilerplate**: Generates all GraphQL definition code - you write the business logic
@@ -37,6 +37,8 @@ targets: [
 
 ## Quick Start
 
+*Protip*: Take a look at the projects in the `Examples` directory to see real, fully featured examples.
+
 ### 1. Create a GraphQL Schema
 
 Create a `.graphql` file in your target's `Sources` directory:
@@ -55,7 +57,7 @@ type Query {
 
 ### 2. Build Your Project
 
-When you build, the plugin will automatically generate Swift code that you can view in the `.build/plugins/outputs` directory:
+When you build, the plugin will automatically generate Swift code. If you want, you can view it in the `.build/plugins/outputs` directory:
 - `BuildGraphQLSchema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema.
 - `GraphQLRawSDL.swift` - The `graphQLRawSDL` global property, which is a Swift string literal of the input schema. This is internally used at runtime to parse the schema.
 - `GraphQLTypes.swift` - Swift protocols and types for your GraphQL types. These are all namespaced within `GraphQLGenerated`.
@@ -72,7 +74,7 @@ actor GraphQLContext {
 
 If your schema has any custom scalar types, you must create them manually in the `GraphQLScalars` namespace. See the `Scalars` usage section below for details.
 
-Create a resolvers struct with the required typealiases:
+Create a struct that conforms to `GraphQLGenerated.Resolvers` by defining the required typealiases:
 ```swift
 struct Resolvers: GraphQLGenerated.Resolvers {
     typealias Query = ExamplePackage.Query
@@ -108,7 +110,11 @@ struct User: GraphQLGenerated.User {
 }
 ```
 
+Let the protocol conformance guide you on what resolver methods your types must define, and keep going until everything compiles.
+
 ### 4. Execute GraphQL Queries
+
+You're done! You can now instantiate your GraphQL schema by calling `buildGraphQLSchema`, and run queries against it:
 
 ```swift
 import GraphQL
@@ -117,7 +123,7 @@ import GraphQL
 let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
 
 // Execute a query against it
-let result = try await graphql(schema: schema, request: "{ users { name email } }")
+let result = try await graphql(schema: schema, request: "{ users { name email } }", context: GraphQLContext())
 print(result)
 ```
 
@@ -138,7 +144,7 @@ type A {
 }
 ```
 
-This would result in the following protocol:
+This would result in the following generated protocol:
 ```swift
 protocol A: Sendable {
     func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
