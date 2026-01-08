@@ -25,14 +25,11 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
     ],
     targets: [
-        // Build plugin that discovers .graphql files and invokes the generator
         .plugin(
             name: "GraphQLGeneratorPlugin",
             capability: .buildTool(),
             dependencies: ["GraphQLGenerator"]
         ),
-
-        // CLI executable that performs code generation
         .executableTarget(
             name: "GraphQLGenerator",
             dependencies: [
@@ -40,24 +37,18 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
-
-        // Core library with parsing and generation logic
         .target(
             name: "GraphQLGeneratorCore",
             dependencies: [
                 .product(name: "GraphQL", package: "GraphQL"),
             ]
         ),
-
-        // Runtime library for generated code
         .target(
             name: "GraphQLGeneratorRuntime",
             dependencies: [
                 .product(name: "GraphQL", package: "GraphQL"),
             ]
         ),
-
-        // Tests
         .testTarget(
             name: "GraphQLGeneratorCoreTests",
             dependencies: [

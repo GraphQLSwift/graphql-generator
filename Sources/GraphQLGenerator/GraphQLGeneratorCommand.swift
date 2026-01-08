@@ -26,7 +26,6 @@ struct GraphQLGeneratorCommand: ParsableCommand {
             print("Output directory: \(outputDirectory)")
         }
 
-        // Validate input files exist
         for filePath in schemaFiles {
             let fileURL = URL(fileURLWithPath: filePath)
             guard FileManager.default.fileExists(atPath: fileURL.path) else {
@@ -34,15 +33,12 @@ struct GraphQLGeneratorCommand: ParsableCommand {
             }
         }
 
-        // Create output directory if it doesn't exist
         let outputURL = URL(fileURLWithPath: outputDirectory)
         try FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
 
         if verbose {
             print("Parsing schema files...")
         }
-
-        /// Read GraphQL schema files and combine them into a single schema
         var combinedSource = ""
         for filePath in schemaFiles {
             let url = URL(fileURLWithPath: filePath)
@@ -50,15 +46,12 @@ struct GraphQLGeneratorCommand: ParsableCommand {
             combinedSource += content + "\n"
         }
 
-        // Generate code
         let generator = CodeGenerator()
         let files = try generator.generate(source: combinedSource)
 
-        // Write generated files
         for (filename, content) in files {
             let fileURL = outputURL.appendingPathComponent(filename)
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
-
             if verbose {
                 print("Generated: \(fileURL.path)")
             }

@@ -5,7 +5,7 @@ import GraphQL
 package struct CodeGenerator {
     package init() {}
 
-    /// Generate all Swift files from the schema
+    /// Generate all Swift files from the schema source string.
     /// Returns a dictionary of filename -> file content
     package func generate(source: String) throws -> [String: String] {
         let schema = try GraphQL.buildSchema(source: source)
