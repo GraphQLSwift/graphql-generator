@@ -1,4 +1,4 @@
-***WARNING***: This package is in beta. It's API is still evolving and is subject to breaking changes.
+***WARNING***: This package is in v0.x beta. It's API is still evolving and is subject to breaking changes in minor version bumps.
 
 # GraphQL Generator for Swift
 
@@ -36,7 +36,9 @@ targets: [
 
 ## Quick Start
 
-*Protip*: Take a look at the projects in the `Examples` directory to see real, fully featured examples.
+Take a look at the example projects to see real, fully featured implementations:
+- [HelloWorldServer](Examples/HelloWorldServer) - Demonstrates all GraphQL type mappings with a comprehensive schema
+- [StarWars](Examples/StarWars) - A production-like example using the SWAPI with DataLoader for caching
 
 ### 1. Create a GraphQL Schema
 
@@ -82,7 +84,7 @@ struct Resolvers: GraphQLGenerated.Resolvers {
 }
 ```
 
-As you build the `Query`, `Mutation`, and `Subscription` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL result, according to its generated protocol:
+As you build the `Query`, `Mutation`, and `Subscription` types and their resolution logic, you will be forced to define a concrete type for every reachable GraphQL type, according to its generated protocol:
 
 ```swift
 struct Query: GraphQLGenerated.Query {
@@ -126,62 +128,243 @@ let result = try await graphql(schema: schema, request: "{ users { name email } 
 print(result)
 ```
 
-## Design
+## Design Philosophy
 
-All generated types other than `GraphQLContext` and scalar types are namespaced inside of `GraphQLGenerated` to minimize polluting the inheriting package's type namespace.
+This generator is designed with the following guiding principles:
 
-### Root Types
-GraphQL root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method for each GraphQL field. The user must implement these types and provide them to the `buildGraphQLSchema` function via the `Resolvers` typealiases.
+- **Protocol-based flexibility**: GraphQL types are generated as Swift protocols (except where concrete types are needed), allowing you to implement backing types however you want - structs, actors, classes, or any combination.
+- **Explicit over implicit**: No default resolvers based on reflection. While more verbose, this provides better performance and clearer schema evolution handling.
+- **Type safety**: Leverage Swift's type system to ensure compile-time conformance with your GraphQL schema.
+- **Namespace isolation**: All generated types (except `GraphQLContext` and custom scalars) are namespaced inside `GraphQLGenerated` to avoid polluting your package's type namespace.
+
+## GraphQL to Swift Type Mappings
+
+This section describes how each GraphQL type is converted to Swift code, with concrete examples from the [HelloWorldServer](Examples/HelloWorldServer) example. Note that all generated types are namespaced inside `GraphQLGenerated`
+
+### Root Types (Query, Mutation, Subscription)
+
+GraphQL root types are generated as Swift protocols with static methods for each field.
+
+**GraphQL:**
+```graphql
+type Query {
+  user(id: ID!): User
+  users: [User!]!
+}
+
+type Mutation {
+  upsertUser(userInfo: UserInfo!): User!
+}
+
+type Subscription {
+  watchUser(id: ID!): User
+}
+```
+
+**Generated Swift:**
+```swift
+protocol Query: Sendable {
+    static func user(id: String, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any User)?
+    static func users(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> [any User]
+}
+
+protocol Mutation: Sendable {
+    static func upsertUser(userInfo: UserInfo, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> any User
+}
+
+protocol Subscription: Sendable {
+    static func watchUser(id: String, context: GraphQLContext, info: GraphQLResolveInfo) async throws -> AnyAsyncSequence<(any User)?>
+}
+```
 
 ### Object Types
-GraphQL object types are modeled as Swift protocols with a method for each GraphQL field. This allows the Swift implementation to be very flexible. Internally, GraphQL passes result objects directly through to subsequent resolvers. By only specifying the interface, we allow the backing types to be incredibly dynamic - they can be simple codable structs or complex stateful actors, reference or values types, or any other type configuration, as long as they conform to the generated protocol.
 
-Furthermore, by only referencing protocols, we can have multiple Swift types back a particular GraphQL type, and can easily mock portions of the schema. As an example, consider the following schema snippet:
+GraphQL object types are generated as Swift protocols with instance methods for each field. This allows for flexible implementations - you can use structs, actors, classes, or any other type that conforms to the protocol.
+
+**GraphQL:**
 ```graphql
-type A {
-  foo: String
+type User {
+  id: ID!
+  name: String!
+  email: EmailAddress!
+  age: Int
 }
 ```
 
-This would result in the following generated protocol:
+**Generated Swift:**
 ```swift
-protocol A: Sendable {
-    func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+protocol User: Sendable {
+    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress
+    func age(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> Int?
 }
 ```
 
-You could define two conforming types. To use `ATest` in tests, simply return it from the relevant resolvers.
+**Example Implementation:**
 ```swift
-struct A: GraphQLGenerated.A {
-    let foo: String
-    func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-        return foo
+struct User: GraphQLGenerated.User {
+    let id: String
+    let name: String
+    let emailAddress: String
+    let age: Int?
+
+    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+        return id
+    }
+    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+        return name
+    }
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+        return .init(email: emailAddress)
+    }
+    func age(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> Int? {
+        return age
     }
 }
-struct ATest: GraphQLGenerated.A {
-    func foo(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-        return "test"
-    }
-}
 ```
 
-This package does not provide default resolvers based on reflection of the type's properties. While this can cause the conformance code to be more verbose, it was chosen to improve performance and better handle schema evolution.
+Because these are protocols, you can have multiple implementations of the same GraphQL type (useful for testing or different data sources):
+
+```swift
+struct MockUser: GraphQLGenerated.User {
+    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String { "test-id" }
+    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String { "Test User" }
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+        .init(email: "test@example.com")
+    }
+    func age(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> Int? { nil }
+}
+```
 
 ### Interface Types
-GraphQL interfaces are modeled as a Swift protocol with required methods for each GraphQL field. Implementing objects and interfaces are marked as requiring conformance to the interface protocol.
+
+GraphQL interfaces are generated as Swift protocols with required methods for each field. Types implementing the interface will have their protocol marked as conforming to the interface protocol.
+
+**GraphQL:**
+```graphql
+interface HasEmail {
+  email: EmailAddress!
+}
+
+type User implements HasEmail {
+  id: ID!
+  name: String!
+  email: EmailAddress!
+}
+```
+
+**Generated Swift:**
+```swift
+protocol HasEmail: Sendable {
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress
+}
+
+protocol User: HasEmail, Sendable {
+    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress
+}
+```
 
 ### Union Types
-GraphQL union types are modeled as a Swift marker protocol, with no required properties or functions. The members of the union have their generated Swift protocol marked as conforming to the to the union protocol.
+
+GraphQL union types are generated as Swift marker protocols with no required properties or methods. Union member types have their protocols marked as conforming to the union protocol.
+
+**GraphQL:**
+```graphql
+union UserOrPost = User | Post
+
+type User {
+  id: ID!
+  name: String!
+}
+
+type Post {
+  id: ID!
+  title: String!
+}
+```
+
+**Generated Swift:**
+```swift
+protocol UserOrPost: Sendable {}
+
+protocol User: UserOrPost, Sendable {
+    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+}
+
+protocol Post: UserOrPost, Sendable {
+    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+    func title(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String
+}
+```
 
 ### Input Object Types
-GraphQL input object types are modeled as a concrete Swift struct with a property for each of the GraphQL fields.
+
+GraphQL input object types are generated as concrete Swift structs with properties for each field. These are `Codable` and `Sendable`.
+
+**GraphQL:**
+```graphql
+input UserInfo {
+  id: ID!
+  name: String!
+  email: EmailAddress!
+  age: Int
+  role: Role = USER
+}
+```
+
+**Generated Swift:**
+```swift
+struct UserInfo: Codable, Sendable {
+    let id: String
+    let name: String
+    let email: GraphQLScalars.EmailAddress
+    let age: Int?
+    let role: Role?
+}
+```
 
 ### Enum Types
-GraphQL enum types are modeled as a concrete Swift enum with a string case for each the GraphQL cases.
+
+GraphQL enum types are generated as concrete Swift enums with raw `String` values. Each GraphQL enum case becomes a Swift enum case with its raw value matching the GraphQL case name.
+
+**GraphQL:**
+```graphql
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+```
+
+**Generated Swift:**
+```swift
+enum Role: String, Codable, Sendable {
+    case admin = "ADMIN"
+    case user = "USER"
+    case guest = "GUEST"
+}
+```
+
+These generated enums can be used directly in your code without any additional implementation.
 
 ### Scalar Types
-GraphQL scalar types are not modeled by the generator. They are simply referenced as `GraphQLScalars.<name>`, and you are expected to define the type and conform it to `GraphQLScalar`. Since GraphQL uses a different serialization system than Swift, you should be sure that the type's conformance to Swift's `Codable` and GraphQL's `GraphQLScalar` agree on a representation. Here is an example that represents an email address as a raw String:
 
+GraphQL scalar types are not generated by the plugin. Instead, they are referenced as `GraphQLScalars.<name>`, and you must define the type and conform it to `GraphQLScalar`.
+
+**GraphQL:**
+```graphql
+scalar EmailAddress
+
+type User {
+  email: EmailAddress!
+}
+```
+
+**Required Implementation:**
 ```swift
 extension GraphQLScalars {
     struct EmailAddress: GraphQLScalar {
@@ -191,7 +374,7 @@ extension GraphQLScalars {
             self.email = email
         }
 
-        // Codability conformance. Represent simply as `email` string.
+        // Codable conformance - for Swift serialization
         init(from decoder: any Decoder) throws {
             self.email = try decoder.singleValueContainer().decode(String.self)
         }
@@ -199,7 +382,7 @@ extension GraphQLScalars {
             try self.email.encode(to: encoder)
         }
 
-        // Scalar conformance. Parse & serialize simply as `email` string.
+        // GraphQLScalar conformance - for GraphQL serialization
         static func serialize(this: Self) throws -> Map {
             return .string(this.email)
         }
@@ -224,7 +407,4 @@ extension GraphQLScalars {
 }
 ```
 
-## Development Roadmap
-
-1. Add Directive support
-2. Add configuration to reference different `.graphql` source file locations.
+Ensure that your `Codable` and `GraphQLScalar` conformances agree on the same representation format.
