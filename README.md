@@ -7,10 +7,9 @@ This is a Swift package plugin that generates server-side GraphQL API code from 
 ## Features
 
 - **Data-driven**: Guarantee conformance with the declared GraphQL spec
-- **Build-time code generation**: Code is generated at build time and doesn't need to be committed
 - **Type-safe**: Leverages Swift's type system for compile-time safety
-- **Minimal boilerplate**: Generates all GraphQL definition code - you write the business logic
-- **Flexible**: Makes no assumptions about backing data types other than GraphQL type conformance
+- **Flexible implementation**: Makes no assumptions about backing data types other than GraphQL type conformance
+- **Minimal boilerplate**: Generates all the piping between Swift and GraphQL - you just write the resolvers
 
 ## Installation
 
@@ -43,7 +42,7 @@ targets: [
 
 Create a `.graphql` file in your target's `Sources` directory:
 
-**Sources/YourTarget/schema.graphql**:
+**Sources/ExamplePackage/schema.graphql**:
 ```graphql
 type User {
   name: String!
@@ -59,7 +58,7 @@ type Query {
 
 When you build, the plugin will automatically generate Swift code. If you want, you can view it in the `.build/plugins/outputs` directory:
 - `BuildGraphQLSchema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema.
-- `GraphQLRawSDL.swift` - The `graphQLRawSDL` global property, which is a Swift string literal of the input schema. This is internally used at runtime to parse the schema.
+- `GraphQLRawSDL.swift` - The `graphQLRawSDL` global property, which is a Swift string literal of the input schema. This is used at runtime to parse the schema.
 - `GraphQLTypes.swift` - Swift protocols and types for your GraphQL types. These are all namespaced within `GraphQLGenerated`.
 
 ### 3. Create required types
@@ -72,7 +71,7 @@ actor GraphQLContext {
 }
 ```
 
-If your schema has any custom scalar types, you must create them manually in the `GraphQLScalars` namespace. See the `Scalars` usage section below for details.
+If your schema has any custom scalar types, you must create them manually in the `GraphQLScalars` namespace. See the `Scalars` section below for details.
 
 Create a struct that conforms to `GraphQLGenerated.Resolvers` by defining the required typealiases:
 ```swift
@@ -132,10 +131,10 @@ print(result)
 All generated types other than `GraphQLContext` and scalar types are namespaced inside of `GraphQLGenerated` to minimize polluting the inheriting package's type namespace.
 
 ### Root Types
-Root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method requirements for each field. The user must implement these types and provide them to the `buildGraphQLSchema` function via the `Resolvers` typealiases.
+GraphQL root types (Query, Mutation, and Subscription) are modeled as Swift protocols with static method for each GraphQL field. The user must implement these types and provide them to the `buildGraphQLSchema` function via the `Resolvers` typealiases.
 
 ### Object Types
-Object types are modeled as Swift protocols with instance method requirements for each field. This is to enable maximum implementation flexibility. Internally, GraphQL passes result objects directly through to subsequent resolvers. By only specifying the interface, we allow the backing types to be incredibly dynamic - they can be simple codable structs or complex stateful actors, reference or values types, or any other type configuration.
+GraphQL object types are modeled as Swift protocols with a method for each GraphQL field. This allows the Swift implementation to be very flexible. Internally, GraphQL passes result objects directly through to subsequent resolvers. By only specifying the interface, we allow the backing types to be incredibly dynamic - they can be simple codable structs or complex stateful actors, reference or values types, or any other type configuration, as long as they conform to the generated protocol.
 
 Furthermore, by only referencing protocols, we can have multiple Swift types back a particular GraphQL type, and can easily mock portions of the schema. As an example, consider the following schema snippet:
 ```graphql
@@ -166,22 +165,22 @@ struct ATest: GraphQLGenerated.A {
 }
 ```
 
-Also, by not providing default resolvers based on reflection of the type's properties, we improve performance and setup the inheriting package up well for evolving the schema over time.
+This package does not provide default resolvers based on reflection of the type's properties. While this can cause the conformance code to be more verbose, it was chosen to improve performance and better handle schema evolution.
 
 ### Interface Types
-Interfaces are modeled as a protocol with required methods for each relevant field. Implementing objects and interfaces are marked as requiring conformance to the interface protocol.
+GraphQL interfaces are modeled as a Swift protocol with required methods for each GraphQL field. Implementing objects and interfaces are marked as requiring conformance to the interface protocol.
 
 ### Union Types
-Union types are modeled as a marker protocol, with no required properties or functions. Related objects are marked as requiring conformance to the union protocol.
+GraphQL union types are modeled as a Swift marker protocol, with no required properties or functions. The members of the union have their generated Swift protocol marked as conforming to the to the union protocol.
 
 ### Input Object Types
-Input object types are modeled as a deterministic Codable struct with the declared fields. If more complex objects must be created from the codable struct, this can be done in the resolver itself, since input objects are only relevant for their associated resolver (they are not passed to downstream resolvers).
+GraphQL input object types are modeled as a concrete Swift struct with a property for each of the GraphQL fields.
 
 ### Enum Types
-Enum types are modeled as a deterministic String enum with values matching the declared fields and associated representations. If you need different values or more complex implementations, simply convert to/from a different representation inside your resolvers.
+GraphQL enum types are modeled as a concrete Swift enum with a string case for each the GraphQL cases.
 
 ### Scalar Types
-Scalar types are not modeled by the generator. They are simply referenced as `GraphQLScalars.<name>`, and you are expected to implement the required type, and conform it to `GraphQLScalar`. Since GraphQL uses a different serialization system than Swift, you should be sure that the type's conformance to Swift's `Codable` and GraphQL's `GraphQLScalar` agree on a representation. Below is an example that represents a scalar struct as a raw String:
+GraphQL scalar types are not modeled by the generator. They are simply referenced as `GraphQLScalars.<name>`, and you are expected to define the type and conform it to `GraphQLScalar`. Since GraphQL uses a different serialization system than Swift, you should be sure that the type's conformance to Swift's `Codable` and GraphQL's `GraphQLScalar` agree on a representation. Here is an example that represents an email address as a raw String:
 
 ```swift
 extension GraphQLScalars {
