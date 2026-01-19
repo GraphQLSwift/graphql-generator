@@ -1,5 +1,3 @@
-***WARNING***: This package is in v0.x beta. It's API is still evolving and is subject to breaking changes in minor version bumps.
-
 # GraphQL Generator for Swift
 
 This is a Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema) and [Swift's OpenAPI Generator](https://github.com/apple/swift-openapi-generator).
