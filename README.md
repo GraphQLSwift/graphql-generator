@@ -5,6 +5,8 @@
 
 This is a Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema) and [Swift's OpenAPI Generator](https://github.com/apple/swift-openapi-generator).
 
+To expose your schema through HTTP, check out [graphql-vapor](https://github.com/GraphQLSwift/graphql-vapor) or [graphql-hummingbird](https://github.com/GraphQLSwift/graphql-hummingbird). To define your schema in native Swift, use [Graphiti](https://github.com/GraphQLSwift/Graphiti) instead.
+
 ## Features
 
 - **Data-driven**: Guarantee conformance with the declared GraphQL spec
