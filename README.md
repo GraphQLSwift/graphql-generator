@@ -5,37 +5,15 @@
 
 This is a Swift package plugin that generates server-side GraphQL API code from GraphQL schema files, inspired by [GraphQL Tools' makeExecutableSchema](https://the-guild.dev/graphql/tools/docs/generate-schema) and [Swift's OpenAPI Generator](https://github.com/apple/swift-openapi-generator).
 
-## Features
+Using this package has the following benefits:
+- Guarantees conformance with the declared GraphQL spec
+- Leverages Swift's type system for compile-time safety
+- Flexiblity in backing data types
+- Generates all the piping between Swift and GraphQL - you just write the resolvers
 
-- **Data-driven**: Guarantee conformance with the declared GraphQL spec
-- **Type-safe**: Leverages Swift's type system for compile-time safety
-- **Flexible implementation**: Makes no assumptions about backing data types other than GraphQL type conformance
-- **Minimal boilerplate**: Generates all the piping between Swift and GraphQL - you just write the resolvers
+To expose your schema through HTTP, check out [graphql-vapor](https://github.com/GraphQLSwift/graphql-vapor) or [graphql-hummingbird](https://github.com/GraphQLSwift/graphql-hummingbird). To define your schema in native Swift, use [Graphiti](https://github.com/GraphQLSwift/Graphiti) instead.
 
-## Installation
-
-Add the package to your `Package.swift`. Be sure to add the `GraphQLGeneratorRuntime` dependency to your package, and add the `GraphQLGeneratorPlugin` to the plugins section:
-
-```swift
-dependencies: [
-    .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.1.0"),
-    .package(url: "https://github.com/GraphQLSwift/graphql-generator", from: "1.0.0")
-],
-targets: [
-    .target(
-        name: "YourTarget",
-        dependencies: [
-            .product(name: "GraphQL", package: "GraphQL"),
-            .product(name: "GraphQLGeneratorRuntime", package: "graphql-generator"),
-        ],
-        plugins: [
-            .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator")
-        ]
-    )
-]
-```
-
-## Quick Start
+## Usage
 
 Take a look at the example projects to see real, fully featured implementations:
 - [HelloWorldServer](Examples/HelloWorldServer) - Demonstrates all GraphQL type mappings with a comprehensive schema
