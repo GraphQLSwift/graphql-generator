@@ -1,5 +1,6 @@
 // swift-tools-version: 6.0
 
+import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
@@ -19,12 +20,18 @@ let package = Package(
             name: "GraphQLGeneratorRuntime",
             targets: ["GraphQLGeneratorRuntime"]
         ),
+        .library(
+            name: "GraphQLGeneratorMacros",
+            targets: ["GraphQLGeneratorMacros"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.1.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
+        .package(url: "https://github.com/apple/swift-syntax.git", "509.0.0" ..< "700.0.0"),
     ],
     targets: [
+        // Build plugin
         .plugin(
             name: "GraphQLGeneratorPlugin",
             capability: .buildTool(),
@@ -53,6 +60,28 @@ let package = Package(
             name: "GraphQLGeneratorCoreTests",
             dependencies: [
                 "GraphQLGeneratorCore",
+            ]
+        ),
+
+        // Macro
+        .macro(
+            name: "GraphQLGeneratorMacrosBackend",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+            ]
+        ),
+        .target(
+            name: "GraphQLGeneratorMacros",
+            dependencies: [
+                "GraphQLGeneratorMacrosBackend",
+            ]
+        ),
+        .testTarget(
+            name: "GraphQLGeneratorMacrosTests",
+            dependencies: [
+                "GraphQLGeneratorMacrosBackend",
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ]
         ),
     ]

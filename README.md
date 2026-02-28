@@ -92,6 +92,25 @@ struct User: GraphQLGenerated.User {
 
 Let the protocol conformance guide you on what resolver methods your types must define, and keep going until everything compiles.
 
+This package also provides a `@graphQLResolver` macro to reduce boilerplate in cases where the resolver simply results in the value of a Swift property. For example, the `User` type above could be shortened to:
+
+```swift
+import GraphQLGeneratedMacros
+
+struct User: GraphQLGenerated.User {
+    @graphQLResolver let name: String
+    let email: String
+
+    // The `func name(...)` resolver is automatically generated.
+
+    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+        return .init(email: self.email)
+    }
+}
+```
+
+Note that you must include the `GraphQLGeneratedMacros` library to use the macros.
+
 ### 4. Execute GraphQL Queries
 
 You're done! You can now instantiate your GraphQL schema by calling `buildGraphQLSchema`, and run queries against it:
@@ -112,7 +131,7 @@ print(result)
 This generator is designed with the following guiding principles:
 
 - **Protocol-based flexibility**: GraphQL types are generated as Swift protocols (except where concrete types are needed), allowing you to implement backing types however you want - structs, actors, classes, or any combination.
-- **Explicit over implicit**: No default resolvers based on reflection. While more verbose, this provides better performance and clearer schema evolution handling.
+- **Explicit over implicit**: No default resolvers based on reflection. While more verbose, this provides better performance and clearer schema evolution handling. Macros are provided for common boilerplate.
 - **Type safety**: Leverage Swift's type system to ensure compile-time conformance with your GraphQL schema.
 - **Namespace isolation**: All generated types (except `GraphQLContext` and custom scalars) are namespaced inside `GraphQLGenerated` to avoid polluting your package's type namespace.
 

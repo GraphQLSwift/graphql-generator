@@ -1,6 +1,7 @@
 import AsyncHTTPClient
 import Foundation
 import GraphQL
+import GraphQLGeneratorMacros
 import GraphQLGeneratorRuntime
 
 struct GraphQLContext {
@@ -130,7 +131,7 @@ struct Root: GraphQLGenerated.Root {
 }
 
 extension Film: GraphQLGenerated.Film {
-    var id: String {
+    @graphQLResolver var id: String {
         return encodeID(type: Film.self, id: urlToID(url))
     }
 
@@ -166,10 +167,6 @@ extension Film: GraphQLGenerated.Film {
         return edited
     }
 
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
-
     func speciesConnection(after: String?, first: Int?, before: String?, last: Int?, context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.FilmSpeciesConnection)? {
         let filteredIDs = species.map { encodeID(type: Film.self, id: urlToID($0)) }
         return Connection<Species>(ids: filteredIDs, after: after, first: first, before: before, last: last)
@@ -197,7 +194,7 @@ extension Film: GraphQLGenerated.Film {
 }
 
 extension Person: GraphQLGenerated.Person {
-    var id: String {
+    @graphQLResolver var id: String {
         return encodeID(type: Person.self, id: urlToID(url))
     }
 
@@ -266,14 +263,10 @@ extension Person: GraphQLGenerated.Person {
     func edited(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
         return edited
     }
-
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
 }
 
 extension Planet: GraphQLGenerated.Planet {
-    var id: String {
+    @graphQLResolver var id: String {
         return encodeID(type: Planet.self, id: urlToID(url))
     }
 
@@ -330,14 +323,10 @@ extension Planet: GraphQLGenerated.Planet {
     func edited(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
         return edited
     }
-
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
 }
 
 extension Species: GraphQLGenerated.Species {
-    var id: String {
+    @graphQLResolver var id: String {
         return encodeID(type: Species.self, id: urlToID(url))
     }
 
@@ -398,14 +387,10 @@ extension Species: GraphQLGenerated.Species {
     func edited(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
         return edited
     }
-
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
 }
 
 extension Starship: GraphQLGenerated.Starship {
-    var id: String {
+    @graphQLResolver var id: String {
         return encodeID(type: Starship.self, id: urlToID(url))
     }
 
@@ -478,14 +463,10 @@ extension Starship: GraphQLGenerated.Starship {
     func edited(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
         return edited
     }
-
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
 }
 
 extension Vehicle: GraphQLGenerated.Vehicle {
-    var id: String {
+    @graphQLResolver var id: String {
         return encodeID(type: Vehicle.self, id: urlToID(url))
     }
 
@@ -549,9 +530,5 @@ extension Vehicle: GraphQLGenerated.Vehicle {
 
     func edited(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
         return edited
-    }
-
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
     }
 }

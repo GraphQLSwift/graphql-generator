@@ -16,6 +16,7 @@ let package = Package(
             name: "HelloWorldServer",
             dependencies: [
                 .product(name: "GraphQL", package: "GraphQL"),
+                .product(name: "GraphQLGeneratorMacros", package: "graphql-generator"),
                 .product(name: "GraphQLGeneratorRuntime", package: "graphql-generator"),
             ],
             plugins: [
