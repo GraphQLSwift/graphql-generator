@@ -6,7 +6,7 @@ import Testing
 struct SchemaGeneratorTests {
     let generator = BuildGraphQLSchemaGenerator()
 
-    @Test func generateSchema() async throws {
+    @Test func generateSchema() throws {
         let bar = try GraphQLObjectType(
             name: "Bar",
             description: "bar",

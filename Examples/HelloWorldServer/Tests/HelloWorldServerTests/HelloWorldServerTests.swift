@@ -1,7 +1,6 @@
 import GraphQL
-import Testing
-
 @testable import HelloWorldServer
+import Testing
 
 @Suite
 struct HelloWorldServerTests {

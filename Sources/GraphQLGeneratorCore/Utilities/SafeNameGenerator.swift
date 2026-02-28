@@ -115,7 +115,9 @@ struct DefensiveSafeNameGenerator: SafeNameGenerator {
 }
 
 extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
-    static var defensive: DefensiveSafeNameGenerator { DefensiveSafeNameGenerator() }
+    static var defensive: DefensiveSafeNameGenerator {
+        DefensiveSafeNameGenerator()
+    }
 }
 
 /// Returns a string sanitized to be usable as a Swift identifier, and tries to produce UpperCamelCase
@@ -129,8 +131,14 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
     /// The defensive strategy to use as fallback.
     var defensive: DefensiveSafeNameGenerator
 
-    func swiftTypeName(for documentedName: String) -> String { swiftName(for: documentedName, capitalize: true) }
-    func swiftMemberName(for documentedName: String) -> String { swiftName(for: documentedName, capitalize: false) }
+    func swiftTypeName(for documentedName: String) -> String {
+        swiftName(for: documentedName, capitalize: true)
+    }
+
+    func swiftMemberName(for documentedName: String) -> String {
+        swiftName(for: documentedName, capitalize: false)
+    }
+
     private func swiftName(for documentedName: String, capitalize: Bool) -> String {
         if documentedName.isEmpty { return capitalize ? "_Empty_" : "_empty_" }
 
@@ -302,5 +310,7 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
 }
 
 extension SafeNameGenerator where Self == DefensiveSafeNameGenerator {
-    static var idiomatic: IdiomaticSafeNameGenerator { IdiomaticSafeNameGenerator(defensive: .defensive) }
+    static var idiomatic: IdiomaticSafeNameGenerator {
+        IdiomaticSafeNameGenerator(defensive: .defensive)
+    }
 }

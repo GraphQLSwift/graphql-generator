@@ -3,13 +3,13 @@ import Testing
 
 @Suite
 struct IndentTests {
-    @Test func singleLine() async throws {
+    @Test func singleLine() {
         #expect("abc".indent(1, includeFirst: false) == "abc")
         #expect("abc".indent(1, includeFirst: true) == "    abc")
         #expect("abc".indent(2, includeFirst: true) == "        abc")
     }
 
-    @Test func multiLine() async throws {
+    @Test func multiLine() {
         #expect(
             """
             abc
