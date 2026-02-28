@@ -8,7 +8,7 @@ struct TypeGeneratorTests {
 
     // MARK: - Enum Tests
 
-    @Test func generateEnum() async throws {
+    @Test func generateEnum() throws {
         let actual = try generator.generateEnum(
             for: .init(
                 name: "Foo",
@@ -137,7 +137,7 @@ struct TypeGeneratorTests {
         #expect(result == expected)
     }
 
-    @Test func generateInterfaceProtocol() async throws {
+    @Test func generateInterfaceProtocol() throws {
         let interfaceA = try GraphQLInterfaceType(
             name: "A",
             description: "A"
@@ -184,7 +184,7 @@ struct TypeGeneratorTests {
         )
     }
 
-    @Test func generateTypeProtocol() async throws {
+    @Test func generateTypeProtocol() throws {
         let interfaceA = try GraphQLInterfaceType(
             name: "A",
             description: "A"
@@ -248,7 +248,7 @@ struct TypeGeneratorTests {
         )
     }
 
-    @Test func generateRootTypeProtocolForQuery() async throws {
+    @Test func generateRootTypeProtocolForQuery() throws {
         let bar = try GraphQLObjectType(
             name: "Bar",
             description: "bar",
@@ -329,7 +329,7 @@ struct TypeGeneratorTests {
         #expect(result == expected)
     }
 
-    @Test func generateRootTypeProtocolForSubscription() async throws {
+    @Test func generateRootTypeProtocolForSubscription() throws {
         let subscription = try GraphQLObjectType(
             name: "Subscription",
             fields: [
