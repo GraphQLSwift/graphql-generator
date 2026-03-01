@@ -35,6 +35,16 @@ public struct GraphQLResolverMacro: PeerMacro {
         let propertyName = identifier.text
         let propertyType = type.trimmedDescription
 
+        // Check if the property has a throwing getter
+        let hasThrows = binding.accessorBlock?.accessors.as(AccessorDeclListSyntax.self)?.contains { accessor in
+            accessor.accessorSpecifier.tokenKind == .keyword(.get) && accessor.effectSpecifiers?.throwsClause != nil
+        } ?? false
+
+        // Check if the property has an async getter
+        let hasAsync = binding.accessorBlock?.accessors.as(AccessorDeclListSyntax.self)?.contains { accessor in
+            accessor.accessorSpecifier.tokenKind == .keyword(.get) && accessor.effectSpecifiers?.asyncSpecifier != nil
+        } ?? false
+
         // Set argument defaults
         var graphQLFieldName = propertyName
 
@@ -55,7 +65,7 @@ public struct GraphQLResolverMacro: PeerMacro {
         // Generate the resolver method
         let resolverMethod: DeclSyntax = """
         func \(raw: graphQLFieldName)(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> \(raw: propertyType) {
-            return \(raw: propertyName)
+            return \(raw: hasThrows ? "try " : "")\(raw: hasAsync ? "await " : "")\(raw: propertyName)
         }
         """
 

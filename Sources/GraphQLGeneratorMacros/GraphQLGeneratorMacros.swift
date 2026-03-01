@@ -18,6 +18,14 @@
 ///     // With name - uses custom GraphQL field name
 ///     @graphQLResolver(name: "fullName")
 ///     let name: String
+///
+///     // Async throwing computed property - automatically adds 'try await'
+///     @graphQLResolver
+///     var userId: String {
+///         get async throws {
+///             try await user.fetchID()
+///         }
+///     }
 /// }
 /// ```
 ///
@@ -30,6 +38,10 @@
 ///
 /// func fullName(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
 ///     return name
+/// }
+///
+/// func userId(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+///     return try await userId
 /// }
 /// ```
 ///

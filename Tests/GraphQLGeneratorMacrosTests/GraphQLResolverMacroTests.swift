@@ -264,4 +264,120 @@ final class GraphQLResolverMacroTests: XCTestCase {
             macros: testMacros
         )
     }
+
+    func testComputedProperty() {
+        assertMacroExpansion(
+            """
+            struct User {
+                @graphQLResolver
+                var name: String {
+                    get {
+                        return "Test"
+                    }
+                }
+            }
+            """,
+            expandedSource: """
+            struct User {
+                var name: String {
+                    get {
+                        return "Test"
+                    }
+                }
+
+                func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                    return name
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func testThrowingComputedProperty() {
+        assertMacroExpansion(
+            """
+            struct User {
+                @graphQLResolver
+                var id: String {
+                    get throws {
+                        try property.getID()
+                    }
+                }
+            }
+            """,
+            expandedSource: """
+            struct User {
+                var id: String {
+                    get throws {
+                        try property.getID()
+                    }
+                }
+
+                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                    return try id
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func testAsyncComputedProperty() {
+        assertMacroExpansion(
+            """
+            struct User {
+                @graphQLResolver
+                var id: String {
+                    get async {
+                        await property.getID()
+                    }
+                }
+            }
+            """,
+            expandedSource: """
+            struct User {
+                var id: String {
+                    get async {
+                        await property.getID()
+                    }
+                }
+
+                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                    return await id
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func testThrowingAsyncComputedProperty() {
+        assertMacroExpansion(
+            """
+            struct User {
+                @graphQLResolver
+                var id: String {
+                    get async throws {
+                        try await property.getID()
+                    }
+                }
+            }
+            """,
+            expandedSource: """
+            struct User {
+                var id: String {
+                    get async throws {
+                        try await property.getID()
+                    }
+                }
+
+                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                    return try await id
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
 }
