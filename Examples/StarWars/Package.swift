@@ -26,6 +26,7 @@ let package = Package(
                 .product(name: "AsyncDataLoader", package: "DataLoader"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "GraphQL", package: "GraphQL"),
+                .product(name: "GraphQLGeneratorMacros", package: "graphql-generator"),
                 .product(name: "GraphQLGeneratorRuntime", package: "graphql-generator"),
             ],
             plugins: [

@@ -1,5 +1,6 @@
 import Foundation
 import GraphQL
+import GraphQLGeneratorMacros
 
 /// Encodes a SWAPI type and ID into a Relay Node ID. This is the base64-encoded string `<type>:<id>`
 /// - Parameters:
@@ -26,33 +27,17 @@ func urlToID(_ url: String) -> String {
 }
 
 struct PageInfo: GraphQLGenerated.PageInfo {
-    let hasNextPage: Bool
-    let hasPreviousPage: Bool
-    let startCursor: String?
-    let endCursor: String?
-
-    func hasNextPage(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> Bool {
-        return hasNextPage
-    }
-
-    func hasPreviousPage(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> Bool {
-        return hasPreviousPage
-    }
-
-    func startCursor(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
-        return startCursor
-    }
-
-    func endCursor(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String? {
-        return endCursor
-    }
+    @graphQLResolver let hasNextPage: Bool
+    @graphQLResolver let hasPreviousPage: Bool
+    @graphQLResolver let startCursor: String?
+    @graphQLResolver let endCursor: String?
 }
 
 /// A generalized Relay connection.
 struct Connection<T: GraphQLGenerated.Node>: Sendable {
-    let pageInfo: PageInfo
-    let edges: [Edge<T>]
-    let totalCount: Int
+    @graphQLResolver let pageInfo: any GraphQLGenerated.PageInfo
+    @graphQLResolver let edges: [Edge<T>]
+    @graphQLResolver let totalCount: Int?
 
     /// Create a connection by passing a total list of the available IDs in order.
     init(ids: [String], after: String?, first: Int?, before: String?, last: Int?) {
@@ -92,18 +77,6 @@ struct Connection<T: GraphQLGenerated.Node>: Sendable {
         )
         edges = pageIds.map { Edge<T>(cursor: $0) }
         totalCount = ids.count
-    }
-
-    func pageInfo(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> any GraphQLGenerated.PageInfo {
-        return pageInfo
-    }
-
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [Edge<T>]? {
-        return edges
-    }
-
-    func totalCount(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> Int? {
-        return totalCount
     }
 }
 
@@ -338,11 +311,7 @@ extension Connection:
 }
 
 struct Edge<T: GraphQLGenerated.Node>: Sendable {
-    let cursor: String
-
-    func cursor(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return cursor
-    }
+    @graphQLResolver let cursor: String
 }
 
 extension Edge:

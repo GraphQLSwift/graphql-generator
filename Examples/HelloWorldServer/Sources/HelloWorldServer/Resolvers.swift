@@ -1,5 +1,6 @@
 import Foundation
 import GraphQL
+import GraphQLGeneratorMacros
 import GraphQLGeneratorRuntime
 
 /// Must be created by user and named `GraphQLContext`.
@@ -76,39 +77,28 @@ struct Resolvers: GraphQLGenerated.Resolvers {
 
 struct User: GraphQLGenerated.User {
     // User can choose structure
-    let id: String
-    let name: String
+
+    // Properties with auto-generated GraphQL resolvers.
+
+    @graphQLResolver let id: String
+    @graphQLResolver let name: String
+    @graphQLResolver let age: Int?
+    @graphQLResolver let role: GraphQLGenerated.Role?
+
+    // Required implementations
+    // Can't use @graphQLResolver macro because we must convert from String to GraphQLScalars.EmailAddress
+
     let email: String
-    let age: Int?
-    let role: GraphQLGenerated.Role?
-
-    /// Required implementations
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
-
-    func name(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return name
-    }
-
     func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
         return .init(email: email)
-    }
-
-    func age(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> Int? {
-        return age
-    }
-
-    func role(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLGenerated.Role? {
-        return role
     }
 }
 
 struct Contact: GraphQLGenerated.Contact {
-    /// User can choose structure
-    let email: String
+    // User can choose structure
 
     /// Required implementations
+    let email: String
     func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
         return .init(email: email)
     }
@@ -116,24 +106,13 @@ struct Contact: GraphQLGenerated.Contact {
 
 struct Post: GraphQLGenerated.Post {
     // User can choose structure
-    let id: String
-    let title: String
-    let content: String
-    let authorId: String
+
+    @graphQLResolver let id: String
+    @graphQLResolver let title: String
+    @graphQLResolver let content: String
 
     /// Required implementations
-    func id(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return id
-    }
-
-    func title(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return title
-    }
-
-    func content(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> String {
-        return content
-    }
-
+    let authorId: String
     func author(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> any GraphQLGenerated.User {
         return context.users[authorId]!
     }
@@ -168,9 +147,9 @@ struct Mutation: GraphQLGenerated.Mutation {
         let user = User(
             id: userInfo.id,
             name: userInfo.name,
-            email: userInfo.email.email,
             age: userInfo.age,
-            role: userInfo.role
+            role: userInfo.role,
+            email: userInfo.email.email
         )
         context.users[userInfo.id] = user
         return user

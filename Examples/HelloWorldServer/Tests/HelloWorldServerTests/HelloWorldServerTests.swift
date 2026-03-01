@@ -7,7 +7,7 @@ struct HelloWorldServerTests {
     @Test func query() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
         let context = GraphQLContext(
-            users: ["1": .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
+            users: ["1": .init(id: "1", name: "John", age: 18, role: .user, email: "john@example.com")],
             posts: ["1": .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
         )
         let actual = try await graphql(
@@ -89,7 +89,7 @@ struct HelloWorldServerTests {
     @Test func subscription() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
         let context = GraphQLContext(
-            users: ["1": .init(id: "1", name: "John", email: "john@example.com", age: 18, role: .user)],
+            users: ["1": .init(id: "1", name: "John", age: 18, role: .user, email: "john@example.com")],
             posts: [:]
         )
         let stream = try await graphqlSubscribe(
