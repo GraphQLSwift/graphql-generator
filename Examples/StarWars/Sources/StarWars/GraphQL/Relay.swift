@@ -67,7 +67,7 @@ struct Connection<T: GraphQLGenerated.Node>: Sendable {
         if let last {
             startIndex = max(endIndex - last, startIndex)
         }
-        let pageIds = ids[startIndex ... endIndex]
+        let pageIds = ids[startIndex...endIndex]
 
         pageInfo = PageInfo(
             hasNextPage: endIndex < ids.count - 1,
@@ -87,37 +87,60 @@ extension Connection:
     GraphQLGenerated.SpeciesFilmsConnection,
     GraphQLGenerated.StarshipFilmsConnection,
     GraphQLGenerated.VehicleFilmsConnection
-    where T: GraphQLGenerated.Film
-{
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.FilmsEdge]? {
+where T: GraphQLGenerated.Film {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.FilmsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PersonFilmsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PersonFilmsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PlanetFilmsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PlanetFilmsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.SpeciesFilmsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.SpeciesFilmsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.StarshipFilmsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.StarshipFilmsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.VehicleFilmsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.VehicleFilmsEdge]? {
         return edges
     }
 
-    func films(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Film]? {
+    func films(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Film]? {
         return try await nodes(context: context, info: info)
     }
 
-    private func nodes(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Film]? {
+    private func nodes(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Film]? {
         var nodes = [GraphQLGenerated.Film]()
         for edge in edges {
             if let node = try await edge.node(context: context, info: info) {
@@ -135,49 +158,81 @@ extension Connection:
     GraphQLGenerated.SpeciesPeopleConnection,
     GraphQLGenerated.StarshipPilotsConnection,
     GraphQLGenerated.VehiclePilotsConnection
-    where T: GraphQLGenerated.Person
-{
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PeopleEdge]? {
+where T: GraphQLGenerated.Person {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PeopleEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.FilmCharactersEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.FilmCharactersEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PlanetResidentsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PlanetResidentsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.SpeciesPeopleEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.SpeciesPeopleEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.StarshipPilotsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.StarshipPilotsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.VehiclePilotsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.VehiclePilotsEdge]? {
         return edges
     }
 
-    func people(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Person]? {
+    func people(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Person]? {
         return try await nodes(context: context, info: info)
     }
 
-    func characters(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Person]? {
+    func characters(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Person]? {
         return try await nodes(context: context, info: info)
     }
 
-    func residents(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Person]? {
+    func residents(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Person]? {
         return try await nodes(context: context, info: info)
     }
 
-    func pilots(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Person]? {
+    func pilots(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Person]? {
         return try await nodes(context: context, info: info)
     }
 
-    private func nodes(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Person]? {
+    private func nodes(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Person]? {
         var nodes = [GraphQLGenerated.Person]()
         for edge in edges {
             if let node = try await edge.node(context: context, info: info) {
@@ -191,21 +246,32 @@ extension Connection:
 extension Connection:
     GraphQLGenerated.PlanetsConnection,
     GraphQLGenerated.FilmPlanetsConnection
-    where T: GraphQLGenerated.Planet
-{
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PlanetsEdge]? {
+where T: GraphQLGenerated.Planet {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PlanetsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.FilmPlanetsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.FilmPlanetsEdge]? {
         return edges
     }
 
-    func planets(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Planet]? {
+    func planets(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Planet]? {
         return try await nodes(context: context, info: info)
     }
 
-    private func nodes(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Planet]? {
+    private func nodes(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Planet]? {
         var nodes = [GraphQLGenerated.Planet]()
         for edge in edges {
             if let node = try await edge.node(context: context, info: info) {
@@ -219,21 +285,32 @@ extension Connection:
 extension Connection:
     GraphQLGenerated.SpeciesConnection,
     GraphQLGenerated.FilmSpeciesConnection
-    where T: GraphQLGenerated.Species
-{
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.SpeciesEdge]? {
+where T: GraphQLGenerated.Species {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.SpeciesEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.FilmSpeciesEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.FilmSpeciesEdge]? {
         return edges
     }
 
-    func species(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Species]? {
+    func species(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Species]? {
         return try await nodes(context: context, info: info)
     }
 
-    private func nodes(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Species]? {
+    private func nodes(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Species]? {
         var nodes = [GraphQLGenerated.Species]()
         for edge in edges {
             if let node = try await edge.node(context: context, info: info) {
@@ -248,25 +325,39 @@ extension Connection:
     GraphQLGenerated.StarshipsConnection,
     GraphQLGenerated.FilmStarshipsConnection,
     GraphQLGenerated.PersonStarshipsConnection
-    where T: GraphQLGenerated.Starship
-{
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.StarshipsEdge]? {
+where T: GraphQLGenerated.Starship {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.StarshipsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.FilmStarshipsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.FilmStarshipsEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PersonStarshipsEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PersonStarshipsEdge]? {
         return edges
     }
 
-    func starships(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Starship]? {
+    func starships(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Starship]? {
         return try await nodes(context: context, info: info)
     }
 
-    private func nodes(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Starship]? {
+    private func nodes(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Starship]? {
         var nodes = [GraphQLGenerated.Starship]()
         for edge in edges {
             if let node = try await edge.node(context: context, info: info) {
@@ -281,25 +372,39 @@ extension Connection:
     GraphQLGenerated.VehiclesConnection,
     GraphQLGenerated.FilmVehiclesConnection,
     GraphQLGenerated.PersonVehiclesConnection
-    where T: GraphQLGenerated.Vehicle
-{
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.VehiclesEdge]? {
+where T: GraphQLGenerated.Vehicle {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.VehiclesEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.FilmVehiclesEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.FilmVehiclesEdge]? {
         return edges
     }
 
-    func edges(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.PersonVehiclesEdge]? {
+    func edges(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.PersonVehiclesEdge]? {
         return edges
     }
 
-    func vehicles(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Vehicle]? {
+    func vehicles(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Vehicle]? {
         return try await nodes(context: context, info: info)
     }
 
-    private func nodes(context: GraphQLContext, info: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Vehicle]? {
+    private func nodes(
+        context: GraphQLContext,
+        info: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Vehicle]? {
         var nodes = [GraphQLGenerated.Vehicle]()
         for edge in edges {
             if let node = try await edge.node(context: context, info: info) {
@@ -321,9 +426,11 @@ extension Edge:
     GraphQLGenerated.SpeciesFilmsEdge,
     GraphQLGenerated.StarshipFilmsEdge,
     GraphQLGenerated.VehicleFilmsEdge
-    where T: GraphQLGenerated.Film
-{
-    func node(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Film)? {
+where T: GraphQLGenerated.Film {
+    func node(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Film)? {
         let (_, id) = decodeID(cursor)
         return try await context.client.get(type: Film.self, id: id)
     }
@@ -336,9 +443,11 @@ extension Edge:
     GraphQLGenerated.SpeciesPeopleEdge,
     GraphQLGenerated.StarshipPilotsEdge,
     GraphQLGenerated.VehiclePilotsEdge
-    where T: GraphQLGenerated.Person
-{
-    func node(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Person)? {
+where T: GraphQLGenerated.Person {
+    func node(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Person)? {
         let (_, id) = decodeID(cursor)
         return try await context.client.get(type: Person.self, id: id)
     }
@@ -347,9 +456,11 @@ extension Edge:
 extension Edge:
     GraphQLGenerated.PlanetsEdge,
     GraphQLGenerated.FilmPlanetsEdge
-    where T: GraphQLGenerated.Planet
-{
-    func node(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Planet)? {
+where T: GraphQLGenerated.Planet {
+    func node(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Planet)? {
         let (_, id) = decodeID(cursor)
         return try await context.client.get(type: Planet.self, id: id)
     }
@@ -358,9 +469,11 @@ extension Edge:
 extension Edge:
     GraphQLGenerated.SpeciesEdge,
     GraphQLGenerated.FilmSpeciesEdge
-    where T: GraphQLGenerated.Species
-{
-    func node(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Species)? {
+where T: GraphQLGenerated.Species {
+    func node(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Species)? {
         let (_, id) = decodeID(cursor)
         return try await context.client.get(type: Species.self, id: id)
     }
@@ -370,9 +483,11 @@ extension Edge:
     GraphQLGenerated.StarshipsEdge,
     GraphQLGenerated.FilmStarshipsEdge,
     GraphQLGenerated.PersonStarshipsEdge
-    where T: GraphQLGenerated.Starship
-{
-    func node(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Starship)? {
+where T: GraphQLGenerated.Starship {
+    func node(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Starship)? {
         let (_, id) = decodeID(cursor)
         return try await context.client.get(type: Starship.self, id: id)
     }
@@ -382,9 +497,11 @@ extension Edge:
     GraphQLGenerated.VehiclesEdge,
     GraphQLGenerated.FilmVehiclesEdge,
     GraphQLGenerated.PersonVehiclesEdge
-    where T: GraphQLGenerated.Vehicle
-{
-    func node(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Vehicle)? {
+where T: GraphQLGenerated.Vehicle {
+    func node(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Vehicle)? {
         let (_, id) = decodeID(cursor)
         return try await context.client.get(type: Vehicle.self, id: id)
     }

@@ -53,7 +53,8 @@
 /// - Parameters:
 ///   - name: Optional. The GraphQL field name. If omitted, the property name is used.
 @attached(peer, names: arbitrary)
-public macro graphQLResolver(name: String? = nil) = #externalMacro(
-    module: "GraphQLGeneratorMacrosBackend",
-    type: "GraphQLResolverMacro"
-)
+public macro graphQLResolver(name: String? = nil) =
+    #externalMacro(
+        module: "GraphQLGeneratorMacrosBackend",
+        type: "GraphQLResolverMacro"
+    )

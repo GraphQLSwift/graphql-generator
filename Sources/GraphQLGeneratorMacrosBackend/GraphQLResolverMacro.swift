@@ -18,16 +18,17 @@ public struct GraphQLResolverMacro: PeerMacro {
         }
 
         // Validate that it's a stored property (has 'let' or 'var')
-        guard varDecl.bindingSpecifier.tokenKind == .keyword(.let) ||
-            varDecl.bindingSpecifier.tokenKind == .keyword(.var)
+        guard
+            varDecl.bindingSpecifier.tokenKind == .keyword(.let)
+                || varDecl.bindingSpecifier.tokenKind == .keyword(.var)
         else {
             throw MacroError.invalidPropertyDeclaration
         }
 
         // Extract the property name and type
         guard let binding = varDecl.bindings.first,
-              let identifier = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier,
-              let type = binding.typeAnnotation?.type
+            let identifier = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier,
+            let type = binding.typeAnnotation?.type
         else {
             throw MacroError.invalidPropertyDeclaration
         }
@@ -36,24 +37,28 @@ public struct GraphQLResolverMacro: PeerMacro {
         let propertyType = type.trimmedDescription
 
         // Check if the property has a throwing getter
-        let hasThrows = binding.accessorBlock?.accessors.as(AccessorDeclListSyntax.self)?.contains { accessor in
-            accessor.accessorSpecifier.tokenKind == .keyword(.get) && accessor.effectSpecifiers?.throwsClause != nil
-        } ?? false
+        let hasThrows =
+            binding.accessorBlock?.accessors.as(AccessorDeclListSyntax.self)?.contains { accessor in
+                accessor.accessorSpecifier.tokenKind == .keyword(.get)
+                    && accessor.effectSpecifiers?.throwsClause != nil
+            } ?? false
 
         // Check if the property has an async getter
-        let hasAsync = binding.accessorBlock?.accessors.as(AccessorDeclListSyntax.self)?.contains { accessor in
-            accessor.accessorSpecifier.tokenKind == .keyword(.get) && accessor.effectSpecifiers?.asyncSpecifier != nil
-        } ?? false
+        let hasAsync =
+            binding.accessorBlock?.accessors.as(AccessorDeclListSyntax.self)?.contains { accessor in
+                accessor.accessorSpecifier.tokenKind == .keyword(.get)
+                    && accessor.effectSpecifiers?.asyncSpecifier != nil
+            } ?? false
 
         // Set argument defaults
         var graphQLFieldName = propertyName
 
         // Override if arguments are provided
-        if case let .argumentList(arguments) = node.arguments {
+        if case .argumentList(let arguments) = node.arguments {
             if let nameArg = arguments.first(where: { $0.label?.text == "name" }) {
                 guard
                     let fieldName = nameArg.expression.as(StringLiteralExprSyntax.self)?
-                    .segments.first?.as(StringSegmentSyntax.self)?.content.text
+                        .segments.first?.as(StringSegmentSyntax.self)?.content.text
                 else {
                     // Invalid name argument
                     throw MacroError.invalidArguments
@@ -64,10 +69,10 @@ public struct GraphQLResolverMacro: PeerMacro {
 
         // Generate the resolver method
         let resolverMethod: DeclSyntax = """
-        func \(raw: graphQLFieldName)(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> \(raw: propertyType) {
-            return \(raw: hasThrows ? "try " : "")\(raw: hasAsync ? "await " : "")\(raw: propertyName)
-        }
-        """
+            func \(raw: graphQLFieldName)(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> \(raw: propertyType) {
+                return \(raw: hasThrows ? "try " : "")\(raw: hasAsync ? "await " : "")\(raw: propertyName)
+            }
+            """
 
         return [resolverMethod]
     }
@@ -84,7 +89,8 @@ enum MacroError: Error, CustomStringConvertible {
         case .notAttachedToProperty:
             return "@graphQLResolver can only be applied to properties"
         case .invalidPropertyDeclaration:
-            return "@graphQLResolver requires a stored property (let/var) with an explicit type annotation"
+            return
+                "@graphQLResolver requires a stored property (let/var) with an explicit type annotation"
         case .invalidArguments:
             return "@graphQLResolver accepts either no arguments or a 'name' string argument"
         }
@@ -95,6 +101,6 @@ enum MacroError: Error, CustomStringConvertible {
 @main
 struct GraphQLGeneratorMacrosPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        GraphQLResolverMacro.self,
+        GraphQLResolverMacro.self
     ]
 }

@@ -17,9 +17,9 @@ public protocol GraphQLScalar: Sendable, Codable {
 // somewhat inefficient. They typically pass through a full serialize/deserialize step on each call.
 // Because of this, we have chosen not to vend defaults to force the user to implement more performant versions.
 
-public extension GraphQLScalar {
+extension GraphQLScalar {
     /// This wraps the GraphQLScalar definition in a type-safe one
-    static func serialize(any: Any) throws -> Map {
+    public static func serialize(any: Any) throws -> Map {
         // We should always get a value of `Self` for custom scalars.
         guard let scalar = any as? Self else {
             throw GraphQLError(

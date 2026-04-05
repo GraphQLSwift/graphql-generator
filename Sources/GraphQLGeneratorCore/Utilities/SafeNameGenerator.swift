@@ -97,20 +97,29 @@ struct DefensiveSafeNameGenerator: SafeNameGenerator {
     ///
     /// Copied from SwiftSyntax/TokenKind.swift
     private static let keywords: Set<String> = [
-        "associatedtype", "class", "deinit", "enum", "extension", "func", "import", "init", "inout", "let", "operator",
-        "precedencegroup", "protocol", "struct", "subscript", "typealias", "var", "fileprivate", "internal", "private",
-        "public", "static", "defer", "if", "guard", "do", "repeat", "else", "for", "in", "while", "return", "break",
-        "continue", "fallthrough", "switch", "case", "default", "where", "catch", "throw", "as", "Any", "false", "is",
-        "nil", "rethrows", "super", "self", "Self", "true", "try", "throws", "yield", "String", "Error", "Int", "Bool",
+        "associatedtype", "class", "deinit", "enum", "extension", "func", "import", "init", "inout",
+        "let", "operator",
+        "precedencegroup", "protocol", "struct", "subscript", "typealias", "var", "fileprivate",
+        "internal", "private",
+        "public", "static", "defer", "if", "guard", "do", "repeat", "else", "for", "in", "while",
+        "return", "break",
+        "continue", "fallthrough", "switch", "case", "default", "where", "catch", "throw", "as",
+        "Any", "false", "is",
+        "nil", "rethrows", "super", "self", "Self", "true", "try", "throws", "yield", "String",
+        "Error", "Int", "Bool",
         "Array", "Type", "type", "Protocol", "await",
     ]
 
     /// A map of ASCII printable characters to their HTML entity names. Used to reduce collisions in generated names.
     private static let specialCharsMap: [Unicode.Scalar: String] = [
-        " ": "space", "!": "excl", "\"": "quot", "#": "num", "$": "dollar", "%": "percnt", "&": "amp", "'": "apos",
-        "(": "lpar", ")": "rpar", "*": "ast", "+": "plus", ",": "comma", "-": "hyphen", ".": "period", "/": "sol",
-        ":": "colon", ";": "semi", "<": "lt", "=": "equals", ">": "gt", "?": "quest", "@": "commat", "[": "lbrack",
-        "\\": "bsol", "]": "rbrack", "^": "hat", "`": "grave", "{": "lcub", "|": "verbar", "}": "rcub", "~": "tilde",
+        " ": "space", "!": "excl", "\"": "quot", "#": "num", "$": "dollar", "%": "percnt",
+        "&": "amp", "'": "apos",
+        "(": "lpar", ")": "rpar", "*": "ast", "+": "plus", ",": "comma", "-": "hyphen",
+        ".": "period", "/": "sol",
+        ":": "colon", ";": "semi", "<": "lt", "=": "equals", ">": "gt", "?": "quest", "@": "commat",
+        "[": "lbrack",
+        "\\": "bsol", "]": "rbrack", "^": "hat", "`": "grave", "{": "lcub", "|": "verbar",
+        "}": "rcub", "~": "tilde",
     ]
 }
 
@@ -160,7 +169,9 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
         enum State: Equatable {
             case modifying
             case preFirstWord
-            struct AccumulatingFirstWordContext: Equatable { var isAccumulatingInitialUppercase: Bool }
+            struct AccumulatingFirstWordContext: Equatable {
+                var isAccumulatingInitialUppercase: Bool
+            }
             case accumulatingFirstWord(AccumulatingFirstWordContext)
             case accumulatingWord
             case waitingForWordStarter
@@ -191,7 +202,7 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
                     state = .accumulatingFirstWord(.init(isAccumulatingInitialUppercase: false))
                     buffer.append(char)
                 }
-            case var .accumulatingFirstWord(context):
+            case .accumulatingFirstWord(var context):
                 if char.isLetter || char.isNumber {
                     if isAllUppercase {
                         buffer.append(contentsOf: char.lowercased())
@@ -209,7 +220,9 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
                             buffer.append(char)
                             context.isAccumulatingInitialUppercase = false
                         } else {
-                            let suffix = documentedName.suffix(from: documentedName.index(after: index))
+                            let suffix = documentedName.suffix(
+                                from: documentedName.index(after: index)
+                            )
                             if suffix.count >= 2 {
                                 let next = suffix.first!
                                 let secondNext = suffix.dropFirst().first!
@@ -259,7 +272,11 @@ struct IdiomaticSafeNameGenerator: SafeNameGenerator {
                 }
             case .accumulatingWord:
                 if char.isLetter || char.isNumber {
-                    if isAllUppercase { buffer.append(contentsOf: char.lowercased()) } else { buffer.append(char) }
+                    if isAllUppercase {
+                        buffer.append(contentsOf: char.lowercased())
+                    } else {
+                        buffer.append(char)
+                    }
                     state = .accumulatingWord
                 } else if Self.wordSeparators.contains(char) {
                     // In the middle of an identifier, these are considered

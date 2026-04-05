@@ -1,6 +1,7 @@
 import GraphQL
-@testable import StarWars
 import Testing
+
+@testable import StarWars
 
 @Suite("display name")
 struct StarWarsTests {
@@ -13,32 +14,32 @@ struct StarWarsTests {
             graphql(
                 schema: schema,
                 request: """
-                {
-                    film(filmID: 1) {
-                        title
-                        planetConnection(first: 2) {
-                            totalCount
-                            edges {
-                                node {
-                                    id
-                                    name
-                                    diameter
+                    {
+                        film(filmID: 1) {
+                            title
+                            planetConnection(first: 2) {
+                                totalCount
+                                edges {
+                                    node {
+                                        id
+                                        name
+                                        diameter
+                                    }
                                 }
                             }
-                        }
-                        vehicleConnection(first: 2) {
-                            totalCount
-                            edges {
-                                node {
-                                    id
-                                    name
-                                    costInCredits
+                            vehicleConnection(first: 2) {
+                                totalCount
+                                edges {
+                                    node {
+                                        id
+                                        name
+                                        costInCredits
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                """,
+                    """,
                 context: context
             )
         )
@@ -53,27 +54,27 @@ struct StarWarsTests {
             graphql(
                 schema: schema,
                 request: """
-                {
-                    allPeople(first: 3) {
-                        totalCount
-                        edges {
-                            node {
-                                id
-                                name
-                                starshipConnection {
-                                    totalCount
-                                    edges {
-                                        node {
-                                            id
-                                            name
+                    {
+                        allPeople(first: 3) {
+                            totalCount
+                            edges {
+                                node {
+                                    id
+                                    name
+                                    starshipConnection {
+                                        totalCount
+                                        edges {
+                                            node {
+                                                id
+                                                name
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                """,
+                    """,
                 context: context
             )
         )

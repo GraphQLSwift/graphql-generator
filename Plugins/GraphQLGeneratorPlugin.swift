@@ -32,18 +32,20 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
             outputDirectory.appendingPathComponent("GraphQLTypes.swift"),
         ]
 
-        let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [
-            "--output-directory", outputDirectory.path,
-        ]
+        let arguments =
+            schemaInputs.flatMap { ["\($0.path)"] } + [
+                "--output-directory", outputDirectory.path,
+            ]
 
         return [
             .buildCommand(
-                displayName: "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
+                displayName:
+                    "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
                 executable: generatorTool.url,
                 arguments: arguments,
                 inputFiles: schemaInputs,
                 outputFiles: outputFiles
-            ),
+            )
         ]
     }
 }
@@ -53,7 +55,9 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
 
     extension GraphQLGeneratorPlugin: XcodeBuildToolPlugin {
         /// Entry point for creating build commands for targets in Xcode projects.
-        func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws -> [Command] {
+        func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws
+            -> [Command]
+        {
             // Find GraphQL schema files
             let schemaFiles = target.inputFiles.filter { file in
                 file.url.pathExtension == "graphql" || file.url.pathExtension == "gql"
@@ -75,18 +79,20 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
                 outputDirectory.appendingPathComponent("Schema.swift"),
             ]
 
-            let arguments = schemaInputs.flatMap { ["\($0.path)"] } + [
-                "--output-directory", outputDirectory.path,
-            ]
+            let arguments =
+                schemaInputs.flatMap { ["\($0.path)"] } + [
+                    "--output-directory", outputDirectory.path,
+                ]
 
             return [
                 .buildCommand(
-                    displayName: "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
+                    displayName:
+                        "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
                     executable: generatorTool.url,
                     arguments: arguments,
                     inputFiles: schemaInputs,
                     outputFiles: outputFiles
-                ),
+                )
             ]
         }
     }

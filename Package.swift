@@ -28,7 +28,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.1.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
-        .package(url: "https://github.com/apple/swift-syntax.git", "600.0.1" ..< "603.0.0"),
+        .package(url: "https://github.com/apple/swift-syntax.git", "600.0.1"..<"603.0.0"),
     ],
     targets: [
         // Build plugin
@@ -47,19 +47,19 @@ let package = Package(
         .target(
             name: "GraphQLGeneratorCore",
             dependencies: [
-                .product(name: "GraphQL", package: "GraphQL"),
+                .product(name: "GraphQL", package: "GraphQL")
             ]
         ),
         .target(
             name: "GraphQLGeneratorRuntime",
             dependencies: [
-                .product(name: "GraphQL", package: "GraphQL"),
+                .product(name: "GraphQL", package: "GraphQL")
             ]
         ),
         .testTarget(
             name: "GraphQLGeneratorCoreTests",
             dependencies: [
-                "GraphQLGeneratorCore",
+                "GraphQLGeneratorCore"
             ]
         ),
 
@@ -74,7 +74,7 @@ let package = Package(
         .target(
             name: "GraphQLGeneratorMacros",
             dependencies: [
-                "GraphQLGeneratorMacrosBackend",
+                "GraphQLGeneratorMacrosBackend"
             ]
         ),
         .testTarget(

@@ -5,7 +5,7 @@ import XCTest
 
 final class GraphQLResolverMacroTests: XCTestCase {
     let testMacros: [String: Macro.Type] = [
-        "graphQLResolver": GraphQLResolverMacro.self,
+        "graphQLResolver": GraphQLResolverMacro.self
     ]
 
     func testSimpleField() {
@@ -17,14 +17,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let id: String
+                struct User {
+                    let id: String
 
-                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return id
+                    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return id
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -44,24 +44,24 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let id: String
+                struct User {
+                    let id: String
 
-                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return id
-                }
-                let name: String
+                    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return id
+                    }
+                    let name: String
 
-                func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return name
-                }
-                let age: Int?
+                    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return name
+                    }
+                    let age: Int?
 
-                func age(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> Int? {
-                    return age
+                    func age(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> Int? {
+                        return age
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -75,14 +75,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let email: String
+                struct User {
+                    let email: String
 
-                func emailAddress(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return email
+                    func emailAddress(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return email
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -99,19 +99,19 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let id: String
+                struct User {
+                    let id: String
 
-                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return id
-                }
-                let name: String
+                    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return id
+                    }
+                    let name: String
 
-                func fullName(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return name
+                    func fullName(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return name
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -125,14 +125,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let email: String?
+                struct User {
+                    let email: String?
 
-                func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String? {
-                    return email
+                    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String? {
+                        return email
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -146,14 +146,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct Query {
-                let users: [User]
+                struct Query {
+                    let users: [User]
 
-                func users(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> [User] {
-                    return users
+                    func users(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> [User] {
+                        return users
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -167,14 +167,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let email: GraphQLScalars.EmailAddress
+                struct User {
+                    let email: GraphQLScalars.EmailAddress
 
-                func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
-                    return email
+                    func email(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+                        return email
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -188,14 +188,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct Query {
-                let user: (any User)?
+                struct Query {
+                    let user: (any User)?
 
-                func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any User)? {
-                    return user
+                    func user(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> (any User)? {
+                        return user
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -209,14 +209,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                var name: String
+                struct User {
+                    var name: String
 
-                func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return name
+                    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return name
+                    }
                 }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -230,16 +230,17 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                let id = "123"
-            }
-            """,
+                struct User {
+                    let id = "123"
+                }
+                """,
             diagnostics: [
                 DiagnosticSpec(
-                    message: "@graphQLResolver requires a stored property (let/var) with an explicit type annotation",
+                    message:
+                        "@graphQLResolver requires a stored property (let/var) with an explicit type annotation",
                     line: 2,
                     column: 5
-                ),
+                )
             ],
             macros: testMacros
         )
@@ -252,14 +253,14 @@ final class GraphQLResolverMacroTests: XCTestCase {
             func someFunction() {}
             """,
             expandedSource: """
-            func someFunction() {}
-            """,
+                func someFunction() {}
+                """,
             diagnostics: [
                 DiagnosticSpec(
                     message: "@graphQLResolver can only be applied to properties",
                     line: 1,
                     column: 1
-                ),
+                )
             ],
             macros: testMacros
         )
@@ -278,18 +279,18 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                var name: String {
-                    get {
-                        return "Test"
+                struct User {
+                    var name: String {
+                        get {
+                            return "Test"
+                        }
+                    }
+
+                    func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return name
                     }
                 }
-
-                func name(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return name
-                }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -307,18 +308,18 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                var id: String {
-                    get throws {
-                        try property.getID()
+                struct User {
+                    var id: String {
+                        get throws {
+                            try property.getID()
+                        }
+                    }
+
+                    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return try id
                     }
                 }
-
-                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return try id
-                }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -336,18 +337,18 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                var id: String {
-                    get async {
-                        await property.getID()
+                struct User {
+                    var id: String {
+                        get async {
+                            await property.getID()
+                        }
+                    }
+
+                    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return await id
                     }
                 }
-
-                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return await id
-                }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
@@ -365,18 +366,18 @@ final class GraphQLResolverMacroTests: XCTestCase {
             }
             """,
             expandedSource: """
-            struct User {
-                var id: String {
-                    get async throws {
-                        try await property.getID()
+                struct User {
+                    var id: String {
+                        get async throws {
+                            try await property.getID()
+                        }
+                    }
+
+                    func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
+                        return try await id
                     }
                 }
-
-                func id(context: GraphQLContext, info: GraphQLResolveInfo) async throws -> String {
-                    return try await id
-                }
-            }
-            """,
+                """,
             macros: testMacros
         )
     }
