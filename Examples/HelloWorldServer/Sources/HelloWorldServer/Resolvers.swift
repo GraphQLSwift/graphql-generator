@@ -52,7 +52,9 @@ extension GraphQLScalars {
             case .string:
                 return map
             default:
-                throw GraphQLError(message: "EmailAddress cannot represent non-string value: \(map)")
+                throw GraphQLError(
+                    message: "EmailAddress cannot represent non-string value: \(map)"
+                )
             }
         }
 
@@ -89,7 +91,9 @@ struct User: GraphQLGenerated.User {
     // Can't use @graphQLResolver macro because we must convert from String to GraphQLScalars.EmailAddress
 
     let email: String
-    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws
+        -> GraphQLScalars.EmailAddress
+    {
         return .init(email: email)
     }
 }
@@ -99,7 +103,10 @@ struct Contact: GraphQLGenerated.Contact {
 
     /// Required implementations
     let email: String
-    func email(context _: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> GraphQLScalars.EmailAddress {
+    func email(
+        context _: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> GraphQLScalars.EmailAddress {
         return .init(email: email)
     }
 }
@@ -113,37 +120,63 @@ struct Post: GraphQLGenerated.Post {
 
     /// Required implementations
     let authorId: String
-    func author(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> any GraphQLGenerated.User {
+    func author(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> any GraphQLGenerated.User {
         return context.users[authorId]!
     }
 }
 
 struct Query: GraphQLGenerated.Query {
     /// Required implementations
-    static func user(id: String, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.User)? {
+    static func user(
+        id: String,
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.User)? {
         return context.users[id]
     }
 
-    static func users(context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.User] {
+    static func users(
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.User] {
         return context.users.values.map { $0 as any GraphQLGenerated.User }
     }
 
-    static func post(id: String, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> (any GraphQLGenerated.Post)? {
+    static func post(
+        id: String,
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.Post)? {
         return context.posts[id]
     }
 
-    static func posts(limit _: Int?, context: GraphQLContext, info _: GraphQL.GraphQLResolveInfo) async throws -> [any GraphQLGenerated.Post] {
+    static func posts(
+        limit _: Int?,
+        context: GraphQLContext,
+        info _: GraphQL.GraphQLResolveInfo
+    ) async throws -> [any GraphQLGenerated.Post] {
         return context.posts.values.map { $0 as any GraphQLGenerated.Post }
     }
 
-    static func userOrPost(id: String, context: GraphQLContext, info _: GraphQLResolveInfo) async throws -> (any GraphQLGenerated.UserOrPost)? {
+    static func userOrPost(
+        id: String,
+        context: GraphQLContext,
+        info _: GraphQLResolveInfo
+    ) async throws -> (any GraphQLGenerated.UserOrPost)? {
         return context.users[id] ?? context.posts[id]
     }
 }
 
 struct Mutation: GraphQLGenerated.Mutation {
     /// Required implementations
-    static func upsertUser(userInfo: GraphQLGenerated.UserInfo, context: GraphQLContext, info _: GraphQLResolveInfo) -> any GraphQLGenerated.User {
+    static func upsertUser(
+        userInfo: GraphQLGenerated.UserInfo,
+        context: GraphQLContext,
+        info _: GraphQLResolveInfo
+    ) -> any GraphQLGenerated.User {
         let user = User(
             id: userInfo.id,
             name: userInfo.name,
@@ -158,7 +191,11 @@ struct Mutation: GraphQLGenerated.Mutation {
 
 struct Subscription: GraphQLGenerated.Subscription {
     /// Required implementations
-    static func watchUser(id: String, context: GraphQLContext, info _: GraphQLResolveInfo) async throws -> AnyAsyncSequence<(any GraphQLGenerated.User)?> {
+    static func watchUser(
+        id: String,
+        context: GraphQLContext,
+        info _: GraphQLResolveInfo
+    ) async throws -> AnyAsyncSequence<(any GraphQLGenerated.User)?> {
         return AsyncStream<(any GraphQLGenerated.User)?> { continuation in
             context.onTriggerWatch = { [weak context] in
                 continuation.yield(context?.users[id])

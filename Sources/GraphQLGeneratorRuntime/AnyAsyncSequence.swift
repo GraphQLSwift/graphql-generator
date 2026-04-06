@@ -1,4 +1,3 @@
-
 /// A type-erased AsyncSequence. This exists because we cannot qualify `AsyncSequence` opaque types with `Element`
 /// constraints in our SubscriptionProtocol.
 public struct AnyAsyncSequence<Element: Sendable>: AsyncSequence, Sendable {
@@ -31,9 +30,9 @@ public struct AnyAsyncSequence<Element: Sendable>: AsyncSequence, Sendable {
     }
 }
 
-public extension AsyncSequence where Self: Sendable, Element: Sendable {
+extension AsyncSequence where Self: Sendable, Element: Sendable {
     /// Create a type erased version of this sequence
-    func any() -> AnyAsyncSequence<Element> {
+    public func any() -> AnyAsyncSequence<Element> {
         AnyAsyncSequence(self)
     }
 }

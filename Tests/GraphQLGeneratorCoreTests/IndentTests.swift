@@ -1,5 +1,6 @@
-@testable import GraphQLGeneratorCore
 import Testing
+
+@testable import GraphQLGeneratorCore
 
 @Suite
 struct IndentTests {
@@ -15,8 +16,7 @@ struct IndentTests {
             abc
             def
             """.indent(1, includeFirst: false)
-                ==
-                """
+                == """
                 abc
                     def
                 """
@@ -26,8 +26,7 @@ struct IndentTests {
             abc
             def
             """.indent(1, includeFirst: true)
-                ==
-                """
+                == """
                     abc
                     def
                 """

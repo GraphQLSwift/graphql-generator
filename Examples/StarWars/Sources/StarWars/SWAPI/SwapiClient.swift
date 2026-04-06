@@ -36,12 +36,13 @@ struct SwapiClient {
                     }
                 }
                 for await result in group {
-                    results[result.0] = switch result.1 {
-                    case let .success(response):
-                        .success(response)
-                    case let .failure(error):
-                        .failure(error)
-                    }
+                    results[result.0] =
+                        switch result.1 {
+                        case .success(let response):
+                            .success(response)
+                        case .failure(let error):
+                            .failure(error)
+                        }
                 }
                 return results
             }
@@ -49,7 +50,10 @@ struct SwapiClient {
     }
 
     func get<T: SwapiResource>(type: T.Type, id: String) async throws -> T? {
-        let instance = try await get(url: "\(rootUrl)/\(type.type.rawValue)/\(id)", as: InstanceResponse<T>.self)
+        let instance = try await get(
+            url: "\(rootUrl)/\(type.type.rawValue)/\(id)",
+            as: InstanceResponse<T>.self
+        )
         return instance?.result.properties
     }
 

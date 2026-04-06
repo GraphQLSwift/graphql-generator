@@ -5,13 +5,13 @@ import PackageDescription
 let package = Package(
     name: "StarWars",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v13)
     ],
     products: [
         .library(
             name: "StarWars",
             targets: ["StarWars"]
-        ),
+        )
     ],
     dependencies: [
         .package(name: "graphql-generator", path: "../.."),
@@ -30,13 +30,13 @@ let package = Package(
                 .product(name: "GraphQLGeneratorRuntime", package: "graphql-generator"),
             ],
             plugins: [
-                .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator"),
+                .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator")
             ]
         ),
         .testTarget(
             name: "StarWarsTests",
             dependencies: [
-                "StarWars",
+                "StarWars"
             ]
         ),
     ]

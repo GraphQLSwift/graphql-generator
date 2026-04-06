@@ -1,33 +1,36 @@
 import GraphQL
-@testable import HelloWorldServer
 import Testing
+
+@testable import HelloWorldServer
 
 @Suite
 struct HelloWorldServerTests {
     @Test func query() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
         let context = GraphQLContext(
-            users: ["1": .init(id: "1", name: "John", age: 18, role: .user, email: "john@example.com")],
+            users: [
+                "1": .init(id: "1", name: "John", age: 18, role: .user, email: "john@example.com")
+            ],
             posts: ["1": .init(id: "1", title: "Foo", content: "bar", authorId: "1")]
         )
         let actual = try await graphql(
             schema: schema,
             request: """
-            {
-                posts {
-                    id
-                    title
-                    content
-                    author {
+                {
+                    posts {
                         id
-                        name
-                        email
-                        age
-                        role
+                        title
+                        content
+                        author {
+                            id
+                            name
+                            email
+                            age
+                            role
+                        }
                     }
                 }
-            }
-            """,
+                """,
             context: context
         )
         let expected = GraphQLResult(
@@ -44,8 +47,8 @@ struct HelloWorldServerTests {
                             "age": 18,
                             "role": "USER",
                         ],
-                    ],
-                ],
+                    ]
+                ]
             ]
         )
         #expect(actual == expected)
@@ -60,16 +63,16 @@ struct HelloWorldServerTests {
         let actual = try await graphql(
             schema: schema,
             request: """
-            mutation {
-                upsertUser(userInfo: {id: "2", name: "Jane", email: "jane@example.com"}) {
-                    id
-                    name
-                    email
-                    age
-                    role
+                mutation {
+                    upsertUser(userInfo: {id: "2", name: "Jane", email: "jane@example.com"}) {
+                        id
+                        name
+                        email
+                        age
+                        role
+                    }
                 }
-            }
-            """,
+                """,
             context: context
         )
         let expected = GraphQLResult(
@@ -80,7 +83,7 @@ struct HelloWorldServerTests {
                     "email": "jane@example.com",
                     "age": nil,
                     "role": "USER",
-                ],
+                ]
             ]
         )
         #expect(actual == expected)
@@ -89,22 +92,24 @@ struct HelloWorldServerTests {
     @Test func subscription() async throws {
         let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
         let context = GraphQLContext(
-            users: ["1": .init(id: "1", name: "John", age: 18, role: .user, email: "john@example.com")],
+            users: [
+                "1": .init(id: "1", name: "John", age: 18, role: .user, email: "john@example.com")
+            ],
             posts: [:]
         )
         let stream = try await graphqlSubscribe(
             schema: schema,
             request: """
-            subscription {
-                watchUser(id: "1") {
-                    id
-                    name
-                    email
-                    age
-                    role
+                subscription {
+                    watchUser(id: "1") {
+                        id
+                        name
+                        email
+                        age
+                        role
+                    }
                 }
-            }
-            """,
+                """,
             context: context
         ).get()
 
@@ -112,32 +117,34 @@ struct HelloWorldServerTests {
 
         context.triggerWatch()
         #expect(
-            try await iterator.next() == GraphQLResult(
-                data: [
-                    "watchUser": [
-                        "id": "1",
-                        "name": "John",
-                        "email": "john@example.com",
-                        "age": 18,
-                        "role": "USER",
-                    ],
-                ]
-            )
+            try await iterator.next()
+                == GraphQLResult(
+                    data: [
+                        "watchUser": [
+                            "id": "1",
+                            "name": "John",
+                            "email": "john@example.com",
+                            "age": 18,
+                            "role": "USER",
+                        ]
+                    ]
+                )
         )
 
         context.triggerWatch()
         #expect(
-            try await iterator.next() == GraphQLResult(
-                data: [
-                    "watchUser": [
-                        "id": "1",
-                        "name": "John",
-                        "email": "john@example.com",
-                        "age": 18,
-                        "role": "USER",
-                    ],
-                ]
-            )
+            try await iterator.next()
+                == GraphQLResult(
+                    data: [
+                        "watchUser": [
+                            "id": "1",
+                            "name": "John",
+                            "email": "john@example.com",
+                            "age": 18,
+                            "role": "USER",
+                        ]
+                    ]
+                )
         )
     }
 }
