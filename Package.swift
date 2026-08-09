@@ -29,6 +29,7 @@ let package = Package(
         .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "4.1.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
         .package(url: "https://github.com/apple/swift-syntax.git", "600.0.1"..<"603.0.0"),
+        .package(url: "https://github.com/jpsim/Yams.git", "4.0.0"..<"7.0.0"),
     ],
     targets: [
         // Build plugin
@@ -42,6 +43,7 @@ let package = Package(
             dependencies: [
                 "GraphQLGeneratorCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Yams", package: "Yams"),
             ]
         ),
         .target(

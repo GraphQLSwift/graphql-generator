@@ -5,16 +5,13 @@ import PackagePlugin
 struct GraphQLGeneratorPlugin: BuildToolPlugin {
     /// Entry point for creating build commands for targets in Swift packages.
     func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
-        // This plugin only runs for package targets that can have source files.
-        guard let sourceFiles = target.sourceModule?.sourceFiles else { return [] }
-
-        // Find the GraphQL schema files
-        let schemaFiles = sourceFiles.filter { file in
-            file.url.pathExtension == "graphql" || file.url.pathExtension == "gql"
+        // This plugin only runs for Swift source targets.
+        guard let target = target as? SwiftSourceModuleTarget else {
+            return []
         }
 
-        // If no schema files found, return early
-        guard !schemaFiles.isEmpty else { return [] }
+        // Find the config file, if present
+        let configFile = findConfigFile(in: target.sourceFiles)
 
         // Find the generator tool
         let generatorTool = try context.tool(named: "GraphQLGenerator")
@@ -22,31 +19,50 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         // Create output directory for generated files
         let outputDirectory = context.pluginWorkDirectoryURL
 
-        // Generate a single set of files from all schema files
-        // (We could also generate per-file, but typically GraphQL schemas are combined)
-        let schemaInputs = schemaFiles.map(\.url)
-
         let outputFiles = [
             outputDirectory.appendingPathComponent("BuildGraphQLSchema.swift"),
             outputDirectory.appendingPathComponent("GraphQLRawSDL.swift"),
             outputDirectory.appendingPathComponent("GraphQLTypes.swift"),
         ]
 
-        let arguments =
-            schemaInputs.flatMap { ["\($0.path)"] } + [
-                "--output-directory", outputDirectory.path,
-            ]
+        var arguments: [String] = []
+
+        // Pass the target's source directory for fallback schema discovery
+        arguments += ["--source-directory", target.directoryURL.path()]
+
+        // Pass output directory
+        arguments += ["--output-directory", outputDirectory.path]
+
+        // Pass config file if found
+        if let configURL = configFile {
+            arguments += ["--config", configURL.path]
+        }
+
+        let inputFiles: [URL] = configFile.map { [$0] } ?? []
 
         return [
             .buildCommand(
-                displayName:
-                    "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
+                displayName: "Generating GraphQL Swift code",
                 executable: generatorTool.url,
                 arguments: arguments,
-                inputFiles: schemaInputs,
+                inputFiles: inputFiles,
                 outputFiles: outputFiles
             )
         ]
+    }
+
+    /// Supported config file names in the target's source directory.
+    private static let supportedConfigFiles: Set<String> = [
+        "graphql-generator-config.yaml",
+        "graphql-generator-config.yml",
+    ]
+
+    /// Finds the generator config file in the target's source files, if present.
+    private func findConfigFile(in sourceFiles: FileList) -> URL? {
+        let configs = sourceFiles.map(\.url).filter {
+            Self.supportedConfigFiles.contains($0.lastPathComponent)
+        }
+        return configs.first
     }
 }
 
@@ -58,13 +74,13 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws
             -> [Command]
         {
-            // Find GraphQL schema files
-            let schemaFiles = target.inputFiles.filter { file in
-                file.url.pathExtension == "graphql" || file.url.pathExtension == "gql"
-            }
+            // Find the config file
+            let configFile = findConfigFile(in: target.inputFiles)
 
-            // If no schema files found, return early
-            guard !schemaFiles.isEmpty else { return [] }
+            // Derive the source directory from the target's input files
+            let sourceDirectory =
+                target.inputFiles.first?.url.deletingLastPathComponent().path
+                ?? context.xcodeProject.directoryURL.path
 
             // Find the generator tool
             let generatorTool = try context.tool(named: "GraphQLGenerator")
@@ -72,25 +88,32 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
             // Create output directory for generated files
             let outputDirectory = context.pluginWorkDirectoryURL
 
-            let schemaInputs = schemaFiles.map(\.url)
-
             let outputFiles = [
                 outputDirectory.appendingPathComponent("Types.swift"),
                 outputDirectory.appendingPathComponent("Schema.swift"),
             ]
 
-            let arguments =
-                schemaInputs.flatMap { ["\($0.path)"] } + [
-                    "--output-directory", outputDirectory.path,
-                ]
+            var arguments: [String] = []
+
+            // Pass the source directory for fallback schema discovery
+            arguments += ["--source-directory", sourceDirectory]
+
+            // Pass output directory
+            arguments += ["--output-directory", outputDirectory.path]
+
+            // Pass config file if found
+            if let configURL = configFile {
+                arguments += ["--config", configURL.path]
+            }
+
+            let inputFiles: [URL] = configFile.map { [$0] } ?? []
 
             return [
                 .buildCommand(
-                    displayName:
-                        "Generating GraphQL Swift code from \(schemaFiles.count) schema file(s)",
+                    displayName: "Generating GraphQL Swift code",
                     executable: generatorTool.url,
                     arguments: arguments,
-                    inputFiles: schemaInputs,
+                    inputFiles: inputFiles,
                     outputFiles: outputFiles
                 )
             ]
