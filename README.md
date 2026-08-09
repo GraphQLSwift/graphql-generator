@@ -23,7 +23,7 @@ Take a look at the example projects to see real, fully featured implementations:
 
 Create a `.graphql` file in your target's `Sources` directory:
 
-**Sources/ExamplePackage/schema.graphql**:
+**Sources/MyTarget/schema.graphql**:
 ```graphql
 type User {
   name: String!
@@ -35,14 +35,32 @@ type Query {
 }
 ```
 
-### 2. Build Your Project
+### 2. Add the Plugin to your Target
+
+In your `package.swift`, add the plugin and dependencies to your GraphQL target:
+
+```
+.target(
+    name: "MyTarget",
+    dependencies: [
+        .product(name: "GraphQL", package: "GraphQL"),
+        .product(name: "GraphQLGeneratorMacros", package: "graphql-generator"),
+        .product(name: "GraphQLGeneratorRuntime", package: "graphql-generator"),
+    ],
+    plugins: [
+        .plugin(name: "GraphQLGeneratorPlugin", package: "graphql-generator")
+    ]
+),
+```
+
+### 3. Build Your Project
 
 When you build, the plugin will automatically generate Swift code. If you want, you can view it in the `.build/plugins/outputs` directory:
 - `BuildGraphQLSchema.swift` - Defines `buildGraphQLSchema` function that builds an executable schema.
 - `GraphQLRawSDL.swift` - The `graphQLRawSDL` global property, which is a Swift string literal of the input schema. This is used at runtime to parse the schema.
 - `GraphQLTypes.swift` - Swift protocols and types for your GraphQL types. These are all namespaced within `GraphQLGenerated`.
 
-### 3. Create required types
+### 4. Create required types
 
 Create a type named `GraphQLContext`:
 
@@ -57,9 +75,9 @@ If your schema has any custom scalar types, you must create them manually in the
 Create a struct that conforms to `GraphQLGenerated.Resolvers` by defining the required typealiases:
 ```swift
 struct Resolvers: GraphQLGenerated.Resolvers {
-    typealias Query = ExamplePackage.Query
-    typealias Mutation = ExamplePackage.Mutation
-    typealias Subscription = ExamplePackage.Subscription
+    typealias Query = MyTarget.Query
+    typealias Mutation = MyTarget.Mutation
+    typealias Subscription = MyTarget.Subscription
 }
 ```
 
@@ -111,7 +129,7 @@ struct User: GraphQLGenerated.User {
 
 Note that you must include the `GraphQLGeneratedMacros` library to use the macros.
 
-### 4. Execute GraphQL Queries
+### 5. Execute GraphQL Queries
 
 You're done! You can now instantiate your GraphQL schema by calling `buildGraphQLSchema`, and run queries against it:
 
@@ -125,6 +143,12 @@ let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
 let result = try await graphql(schema: schema, request: "{ users { name email } }", context: GraphQLContext())
 print(result)
 ```
+
+## Configuration
+
+You can configure this package by including a `graphql-generator-config.yaml` file in your target's source files. It supports the following fields:
+
+`schemas: [String]?`: Paths to GraphQL schema files or directories containing schema files. These paths are relative to the sources directory, and directories are explored recursively. If not provided, the whole sources directory is searched.
 
 ## Design Philosophy
 
