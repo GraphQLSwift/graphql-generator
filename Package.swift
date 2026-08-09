@@ -64,6 +64,12 @@ let package = Package(
                 "GraphQLGeneratorCore"
             ]
         ),
+        .testTarget(
+            name: "GraphQLGeneratorTests",
+            dependencies: [
+                "GraphQLGenerator"
+            ]
+        ),
 
         // Macro
         .macro(
