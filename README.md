@@ -126,6 +126,12 @@ let result = try await graphql(schema: schema, request: "{ users { name email } 
 print(result)
 ```
 
+## Configuration
+
+You can configure this package by including a `graphql-generator-config.yaml` file in your target's source files. It supports the following fields:
+
+`schemas: [String]?`: Paths to GraphQL schema files or directories containing schema files. These paths are relative to the sources directory, and directories are explored recursively. If not provided, the whole sources directory is searched.
+
 ## Design Philosophy
 
 This generator is designed with the following guiding principles:
