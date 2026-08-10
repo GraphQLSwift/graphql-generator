@@ -310,6 +310,37 @@ struct SchemaGeneratorTests {
         #expect(result == expected)
     }
 
+    @Test func generateResolverCallbackHandlesSwiftKeywordArgumentNames() throws {
+        let field = GraphQLField(
+            type: GraphQLString,
+            args: [
+                "ID": GraphQLArgument(type: GraphQLNonNull(GraphQLID)),
+                "where": GraphQLArgument(type: GraphQLString),
+            ]
+        )
+
+        let queryType = try GraphQLObjectType(name: "Query")
+
+        let result = try generator.generateResolverCallback(
+            variableName: "queryFields",
+            fieldName: "user",
+            field: field,
+            target: .query,
+            parentType: queryType
+        )
+
+        let expected = """
+            queryFields["user"]?.resolve = { @Sendable source, args, context, info in
+                let id = try decoder.decode((String).self, from: args["ID"])
+                let _where = args["where"] != .undefined ? try decoder.decode((String?).self, from: args["where"]) : nil
+                let context = try cast(context, to: GraphQLContext.self)
+                return try await Resolvers.Query.user(ID: id, where: _where, context: context, info: info)
+            }
+            """
+
+        #expect(result == expected)
+    }
+
     @Test func generateResolverCallbackForSubscription() throws {
         let field = GraphQLField(
             type: GraphQLString

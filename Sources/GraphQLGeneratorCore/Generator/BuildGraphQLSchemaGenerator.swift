@@ -234,7 +234,7 @@ package struct BuildGraphQLSchemaGenerator {
 
                     let \(safeArgName) = \(decodeStatement)
                 """
-            argsList.append("\(safeArgName): \(safeArgName)")
+            argsList.append("\(argName): \(safeArgName)")
         }
 
         // Add context
