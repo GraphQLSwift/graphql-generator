@@ -249,6 +249,27 @@ package struct GraphQLTypesGenerator {
                 """
         }
 
+        // Property names are sanitized to be valid Swift identifiers, so where that renames a field, coding keys are
+        // required for the value to decode from the GraphQL field name.
+        if fields.keys.contains(where: { nameGenerator.swiftMemberName(for: $0) != $0 }) {
+            output += """
+
+                    enum CodingKeys: String, CodingKey {
+                """
+            for fieldName in fields.keys {
+                let safeName = nameGenerator.swiftMemberName(for: fieldName)
+                let rawValue = safeName == fieldName ? "" : " = \"\(fieldName)\""
+                output += """
+
+                            case \(safeName)\(rawValue)
+                    """
+            }
+            output += """
+
+                    }
+                """
+        }
+
         // Swift auto-generates memberwise initializers for structs, so we don't need to generate one
         output += """
 

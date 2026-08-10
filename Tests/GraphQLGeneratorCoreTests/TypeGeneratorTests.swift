@@ -80,6 +80,37 @@ struct TypeGeneratorTests {
         #expect(result == expected)
     }
 
+    /// Field names that are not valid, idiomatic Swift identifiers are renamed, so the struct needs coding keys to
+    /// keep decoding from the GraphQL field names.
+    @Test func generateInputStructWithNonIdiomaticFieldNames() throws {
+        let inputType = try GraphQLInputObjectType(
+            name: "FilterInput",
+            fields: [
+                "ID": InputObjectField(type: GraphQLNonNull(GraphQLID)),
+                "where": InputObjectField(type: GraphQLString),
+                "name": InputObjectField(type: GraphQLString),
+            ]
+        )
+
+        let result = try generator.generateInputStruct(for: inputType)
+
+        let expected = """
+
+            struct FilterInput: Codable, Sendable {
+                let id: String
+                let _where: String?
+                let name: String?
+                enum CodingKeys: String, CodingKey {
+                    case id = "ID"
+                    case _where = "where"
+                    case name
+                }
+            }
+            """
+
+        #expect(result == expected)
+    }
+
     @Test func generateInputStructWithRecursiveTypes() throws {
         let addressInput = try GraphQLInputObjectType(
             name: "AddressInput"
