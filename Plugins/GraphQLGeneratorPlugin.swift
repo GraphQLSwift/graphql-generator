@@ -38,7 +38,7 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
             arguments += ["--config", configURL.path]
         }
 
-        let inputFiles: [URL] = configFile.map { [$0] } ?? []
+        let inputFiles = commandInputFiles(in: target.sourceFiles, configFile: configFile)
 
         return [
             .buildCommand(
@@ -57,12 +57,23 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         "graphql-generator-config.yml",
     ]
 
+    /// File extensions recognized as GraphQL schema files.
+    private static let schemaExtensions: Set<String> = ["graphql", "gql"]
+
     /// Finds the generator config file in the target's source files, if present.
     private func findConfigFile(in sourceFiles: FileList) -> URL? {
         let configs = sourceFiles.map(\.url).filter {
             Self.supportedConfigFiles.contains($0.lastPathComponent)
         }
         return configs.first
+    }
+
+    /// Returns all files whose contents can affect generated output.
+    private func commandInputFiles(in sourceFiles: FileList, configFile: URL?) -> [URL] {
+        let schemaFiles = sourceFiles.map(\.url).filter {
+            Self.schemaExtensions.contains($0.pathExtension.lowercased())
+        }
+        return (configFile.map { [$0] } ?? []) + schemaFiles
     }
 }
 
@@ -106,7 +117,10 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
                 arguments += ["--config", configURL.path]
             }
 
-            let inputFiles: [URL] = configFile.map { [$0] } ?? []
+            let inputFiles = commandInputFiles(
+                in: target.inputFiles,
+                configFile: configFile
+            )
 
             return [
                 .buildCommand(
