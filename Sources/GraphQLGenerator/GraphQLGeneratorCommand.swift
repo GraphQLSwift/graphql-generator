@@ -29,7 +29,6 @@ struct GraphQLGeneratorCommand: ParsableCommand {
     @Flag(name: .long, help: "Enable verbose logging")
     var verbose: Bool = false
 
-    /// File extensions recognized as GraphQL schema files.
     private static let schemaExtensions: Set<String> = ["graphql", "gql"]
 
     mutating func run() throws {
@@ -105,48 +104,41 @@ struct GraphQLGeneratorCommand: ParsableCommand {
         // Otherwise, recursively scan the source directory itself
         let schemaPaths = configSchemas ?? ["./"]
 
-        let schemaFileSet = try resolvePaths(
-            schemaPaths,
-            relativeTo: URL(fileURLWithPath: sourceDirectory)
-        )
-        return Array(schemaFileSet).sorted()
-    }
+        let fileManager = FileManager.default
+        let sourceURL = URL(fileURLWithPath: sourceDirectory)
+        var schemaFiles: Set<String> = []
 
-    /// Resolves file or directory paths into concrete schema file paths. Files are added directly while directories are expanded recursively.
-    private func resolvePaths(_ paths: [String], relativeTo baseURL: URL) throws -> Set<String> {
-        let fm = FileManager.default
-        var result: Set<String> = []
-
-        for path in paths {
-            let resolvedURL = baseURL.appendingPathComponent(path)
-            let resolvedPath = resolvedURL.path
-
+        for path in schemaPaths {
+            let resolvedURL = sourceURL.appendingPathComponent(path).standardizedFileURL
             var isDirectory: ObjCBool = false
-            guard fm.fileExists(atPath: resolvedPath, isDirectory: &isDirectory) else {
+            guard fileManager.fileExists(atPath: resolvedURL.path, isDirectory: &isDirectory)
+            else {
                 throw ValidationError(
-                    "Schema path not found: \(path) (resolved to \(resolvedPath))"
+                    "Schema path not found: \(path) (resolved to \(resolvedURL.path))"
                 )
             }
 
             if isDirectory.boolValue {
-                // Recursively finds all `.graphql` and `.gql` files under the directory
-                if let enumerator = fm.enumerator(
-                    at: resolvedURL,
-                    includingPropertiesForKeys: [.isDirectoryKey],
-                    options: [.skipsHiddenFiles]
-                ) {
-                    for case let fileURL as URL in enumerator {
-                        let resourceValues = try? fileURL.resourceValues(forKeys: [.isDirectoryKey])
-                        if resourceValues?.isDirectory == true { continue }
-                        if Self.schemaExtensions.contains(fileURL.pathExtension.lowercased()) {
-                            result.insert(fileURL.path)
-                        }
-                    }
+                guard
+                    let enumerator = fileManager.enumerator(
+                        at: resolvedURL,
+                        includingPropertiesForKeys: [.isDirectoryKey],
+                        options: [.skipsHiddenFiles]
+                    )
+                else {
+                    continue
+                }
+                for case let fileURL as URL in enumerator
+                where (try? fileURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) != true
+                    && Self.schemaExtensions.contains(fileURL.pathExtension.lowercased())
+                {
+                    schemaFiles.insert(fileURL.standardizedFileURL.path)
                 }
             } else {
-                result.insert(resolvedPath)
+                schemaFiles.insert(resolvedURL.path)
             }
         }
-        return result
+
+        return schemaFiles.sorted()
     }
 }
