@@ -105,11 +105,10 @@ func swiftTypeDeclaration(
     throw GeneratorError.unsupportedType("Unknown type: \(type)")
 }
 
-/// Map GraphQL leaf types to Swift types.
+/// Map GraphQL scalar types to Swift types.
 ///
 /// - Parameters:
 ///   - graphQLType: The GraphQL Type to generate a reference to
-///   - includeNamespace: Whether to include the `GraphQLGenerated` type namespace in the result
 ///   - nameGenerator: The name generator
 func mapScalarType(_ type: GraphQLScalarType, nameGenerator: SafeNameGenerator) -> String {
     switch type.name {

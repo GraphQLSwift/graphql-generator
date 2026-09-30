@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/GraphQLSwift/GraphQL.git",
       "state" : {
-        "revision" : "397c0f43a1eb6a401858f896263288375efcf0bd",
-        "version" : "4.1.0"
+        "revision" : "a83766b34139a855476166b1dc44d9ae9d8ecff4",
+        "version" : "4.3.0"
       }
     },
     {
