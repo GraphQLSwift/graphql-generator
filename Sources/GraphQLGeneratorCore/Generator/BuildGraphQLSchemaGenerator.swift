@@ -28,6 +28,22 @@ package struct BuildGraphQLSchemaGenerator {
             !$0.name.hasPrefix("__")
         }
 
+        // Apply serialize and parse methods for scalar types
+        let scalarTypes = types.compactMap {
+            $0 as? GraphQLScalarType
+        }
+        for scalar in scalarTypes {
+            // Avoid default scalars
+            guard scalar.astNode != nil else {
+                continue
+            }
+            output += """
+
+
+                \(generateScalarType(for: scalar).indent(1))
+                """
+        }
+
         // Generate type definitions for all object types
         let interfaceTypes = types.compactMap {
             $0 as? GraphQLInterfaceType
@@ -92,6 +108,20 @@ package struct BuildGraphQLSchemaGenerator {
             """
 
         return output
+    }
+
+    func generateScalarType(for type: GraphQLScalarType) -> String {
+        let swiftType = mapScalarType(type, nameGenerator: nameGenerator)
+        return """
+
+
+            if let scalar = schema.typeMap["\(type.name)"] as? GraphQLScalarType {
+                scalar.serialize = { try \(swiftType).serialize(any: $0) }
+                scalar.parseValue = { try \(swiftType).parseValue(map: $0) }
+                scalar.parseLiteral = { try \(swiftType).parseLiteral(value: $0) }
+            }
+
+            """
     }
 
     func generateInterfaceType(for type: GraphQLInterfaceType) throws -> String {

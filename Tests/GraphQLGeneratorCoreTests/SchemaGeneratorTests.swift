@@ -87,6 +87,25 @@ struct SchemaGeneratorTests {
         )
     }
 
+    @Test func generateScalarType() throws {
+        let scalar = try GraphQLScalarType(name: "EmailAddress")
+
+        let result = generator.generateScalarType(for: scalar)
+
+        let expected = """
+
+
+            if let scalar = schema.typeMap["EmailAddress"] as? GraphQLScalarType {
+                scalar.serialize = { try GraphQLScalars.EmailAddress.serialize(any: $0) }
+                scalar.parseValue = { try GraphQLScalars.EmailAddress.parseValue(map: $0) }
+                scalar.parseLiteral = { try GraphQLScalars.EmailAddress.parseLiteral(value: $0) }
+            }
+
+            """
+
+        #expect(result == expected)
+    }
+
     @Test func generateInterfaceType() throws {
         let interfaceType = try GraphQLInterfaceType(
             name: "Node",
