@@ -150,6 +150,15 @@ You can configure this package by including a `graphql-generator-config.yaml` fi
 
 `schemas: [String]?`: Paths to GraphQL schema files or directories containing schema files. These paths are relative to the sources directory, and directories are explored recursively. If not provided, the whole sources directory is searched.
 
+## Command Plugin
+You can run code generation directly into your repository without using the build plugin. To do so, run:
+
+```bash
+swift package --allow-writing-to-package-directory generate-code-from-graphql
+```
+
+When doing this, do not include the `.plugin` in your `Package.swift`, or the code from the Sources and Plugin directories will clash.
+
 ## Design Philosophy
 
 This generator is designed with the following guiding principles:

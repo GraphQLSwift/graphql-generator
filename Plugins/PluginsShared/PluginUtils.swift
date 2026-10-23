@@ -1,36 +1,34 @@
 import Foundation
 import PackagePlugin
 
-@main
-struct GraphQLGeneratorPlugin: BuildToolPlugin {
-    private static let schemaExtensions: Set<String> = ["graphql", "gql"]
+enum PluginUtils {
+    struct ValidatedInputs {
+        let schemaFiles: [URL]
+        let config: URL?
+        let outputDirectory: URL
+        let arguments: [String]
+        let tool: PluginContext.Tool
+    }
 
-    /// Entry point for creating build commands for targets in Swift packages.
-    func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
-        // This plugin only runs for Swift source targets.
-        guard let target = target as? SwiftSourceModuleTarget else {
-            return []
-        }
-
+    /// Validates the inputs and returns the necessary values to run a plugin.
+    static func validateInputs(
+        pluginWorkDirectory: URL,
+        tool: (String) throws -> PluginContext.Tool,
+        sourceFiles: FileList,
+        sourceDirectory: URL,
+        targetName: String,
+        pluginSource: PluginSource
+    ) throws -> ValidatedInputs {
         // Find the config file, if present
-        let configFile = findConfigFile(in: target.sourceFiles)
-
-        // Find the generator tool
-        let generatorTool = try context.tool(named: "GraphQLGenerator")
+        let configFile = findConfigFile(in: sourceFiles)
 
         // Create output directory for generated files
-        let outputDirectory = context.pluginWorkDirectoryURL
-
-        let outputFiles = [
-            outputDirectory.appendingPathComponent("BuildGraphQLSchema.swift"),
-            outputDirectory.appendingPathComponent("GraphQLRawSDL.swift"),
-            outputDirectory.appendingPathComponent("GraphQLTypes.swift"),
-        ]
+        let outputDirectory = pluginWorkDirectory
 
         var arguments: [String] = []
 
         // Pass the target's source directory for fallback schema discovery
-        arguments += ["--source-directory", target.directoryURL.path()]
+        arguments += ["--source-directory", sourceDirectory.path()]
 
         // Pass output directory
         arguments += ["--output-directory", outputDirectory.path]
@@ -41,30 +39,19 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         }
 
         let inputFiles = try commandInputFiles(
-            in: target.sourceFiles,
-            sourceDirectory: target.directoryURL,
-            configFile: configFile
+            in: sourceFiles,
+            sourceDirectory: sourceDirectory,
+            configFile: configFile,
+            targetName: targetName
         )
 
-        return [
-            .buildCommand(
-                displayName: "Generating GraphQL Swift code",
-                executable: generatorTool.url,
-                arguments: arguments,
-                inputFiles: inputFiles,
-                outputFiles: outputFiles
-            )
-        ]
+        let tool = try tool("GraphQLGenerator")
+
+        return ValidatedInputs(schemaFiles: inputFiles, config: configFile, outputDirectory: outputDirectory, arguments: arguments, tool: tool)
     }
 
-    /// Supported config file names in the target's source directory.
-    private static let supportedConfigFiles: Set<String> = [
-        "graphql-generator-config.yaml",
-        "graphql-generator-config.yml",
-    ]
-
     /// Finds the generator config file in the target's source files, if present.
-    private func findConfigFile(in sourceFiles: FileList) -> URL? {
+    private static func findConfigFile(in sourceFiles: FileList) -> URL? {
         let configs = sourceFiles.map(\.url).filter {
             Self.supportedConfigFiles.contains($0.lastPathComponent)
         }
@@ -72,10 +59,11 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
     }
 
     /// Returns all files whose contents can affect generated output.
-    private func commandInputFiles(
+    private static func commandInputFiles(
         in sourceFiles: FileList,
         sourceDirectory: URL,
-        configFile: URL?
+        configFile: URL?,
+        targetName: String
     ) throws -> [URL] {
         let schemaFiles: [URL]
         if let configFile, let configuredPaths = try configuredSchemaPaths(in: configFile) {
@@ -85,11 +73,20 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
                 Self.schemaExtensions.contains($0.pathExtension.lowercased())
             }
         }
-        return (configFile.map { [$0] } ?? []) + schemaFiles
+        if schemaFiles.isEmpty {
+            throw PluginError.noSchemaFiles(targetName: targetName)
+        }
+
+        var inputFiles = [URL]()
+        if let configFile {
+            inputFiles.append(configFile)
+        }
+        inputFiles.append(contentsOf: schemaFiles)
+        return inputFiles
     }
 
     /// Decodes the optional top-level `schemas` YAML sequence used by the generator.
-    private func configuredSchemaPaths(in configFile: URL) throws -> [String]? {
+    private static func configuredSchemaPaths(in configFile: URL) throws -> [String]? {
         let contents = try String(contentsOf: configFile, encoding: .utf8)
         let lines = contents.split(separator: "\n", omittingEmptySubsequences: false)
 
@@ -133,7 +130,7 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         return nil
     }
 
-    private func unquote(_ value: String) -> String {
+    private static func unquote(_ value: String) -> String {
         guard value.count >= 2,
             let first = value.first,
             let last = value.last,
@@ -144,7 +141,7 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
         return String(value.dropFirst().dropLast())
     }
 
-    private func resolveSchemaFiles(_ paths: [String], relativeTo baseURL: URL) throws -> [URL] {
+    private static func resolveSchemaFiles(_ paths: [String], relativeTo baseURL: URL) throws -> [URL] {
         let fileManager = FileManager.default
         var result: Set<URL> = []
 
@@ -178,6 +175,23 @@ struct GraphQLGeneratorPlugin: BuildToolPlugin {
 
         return result.sorted { $0.path < $1.path }
     }
+
+    /// The source of a plugin generator invocation.
+    enum PluginSource: String, Codable {
+        /// BuildTool plugin
+        case build
+        /// Command plugin.
+        case command
+    }
+
+
+    /// Supported config file names in the target's source directory.
+    private static let supportedConfigFiles: Set<String> = [
+        "graphql-generator-config.yaml",
+        "graphql-generator-config.yml",
+    ]
+    
+    private static let schemaExtensions: Set<String> = ["graphql", "gql"]
 }
 
 private enum PluginConfigError: Error, CustomStringConvertible {
@@ -194,61 +208,27 @@ private enum PluginConfigError: Error, CustomStringConvertible {
     }
 }
 
-#if canImport(XcodeProjectPlugin)
-    import XcodeProjectPlugin
+enum PluginError: Swift.Error, Equatable, CustomStringConvertible, LocalizedError {
+    case incompatibleTarget(name: String)
+    case generatorFailure(targetName: String)
+    case noTargetsMatchingTargetNames([String])
+    case noTargetsGenerated(targetNames: [String])
+    case noSchemaFiles(targetName: String)
 
-    extension GraphQLGeneratorPlugin: XcodeBuildToolPlugin {
-        /// Entry point for creating build commands for targets in Xcode projects.
-        func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws
-            -> [Command]
-        {
-            // Find the config file
-            let configFile = findConfigFile(in: target.inputFiles)
-
-            // Derive the source directory from the target's input files
-            let sourceDirectory = context.xcodeProject.directoryURL
-
-            // Find the generator tool
-            let generatorTool = try context.tool(named: "GraphQLGenerator")
-
-            // Create output directory for generated files
-            let outputDirectory = context.pluginWorkDirectoryURL
-
-            let outputFiles = [
-                outputDirectory.appendingPathComponent("BuildGraphQLSchema.swift"),
-                outputDirectory.appendingPathComponent("GraphQLRawSDL.swift"),
-                outputDirectory.appendingPathComponent("GraphQLTypes.swift"),
-            ]
-
-            var arguments: [String] = []
-
-            // Pass the source directory for fallback schema discovery
-            arguments += ["--source-directory", sourceDirectory.path]
-
-            // Pass output directory
-            arguments += ["--output-directory", outputDirectory.path]
-
-            // Pass config file if found
-            if let configURL = configFile {
-                arguments += ["--config", configURL.path]
-            }
-
-            let inputFiles = try commandInputFiles(
-                in: target.inputFiles,
-                sourceDirectory: sourceDirectory,
-                configFile: configFile
-            )
-
-            return [
-                .buildCommand(
-                    displayName: "Generating GraphQL Swift code",
-                    executable: generatorTool.url,
-                    arguments: arguments,
-                    inputFiles: inputFiles,
-                    outputFiles: outputFiles
-                )
-            ]
+    var description: String {
+        switch self {
+        case .incompatibleTarget(let name):
+            return "Incompatible target called '\(name)'. Only Swift source targets can be used with the GraphQL Generator plugin."
+        case .generatorFailure(let targetName):
+            return "The generator failed to generate GraphQL Swift files for target '\(targetName)'."
+        case .noTargetsMatchingTargetNames(let targetNames):
+            return "Found no targets with names \(targetNames.joined(separator: ", "))."
+        case .noSchemaFiles(let targetName):
+            return "No GraphQL schema files found for target '\(targetName)'."
+        case .noTargetsGenerated(let targetNames):
+            return "No targets from inputs \(targetNames.joined(separator: ", ")) were generated."
         }
     }
 
-#endif
+    var errorDescription: String? { description }
+}
