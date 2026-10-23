@@ -41,7 +41,8 @@ enum PluginUtils {
         let inputFiles = try commandInputFiles(
             in: sourceFiles,
             sourceDirectory: sourceDirectory,
-            configFile: configFile
+            configFile: configFile,
+            targetName: targetName
         )
 
         let tool = try tool("GraphQLGenerator")
@@ -61,7 +62,8 @@ enum PluginUtils {
     private static func commandInputFiles(
         in sourceFiles: FileList,
         sourceDirectory: URL,
-        configFile: URL?
+        configFile: URL?,
+        targetName: String
     ) throws -> [URL] {
         let schemaFiles: [URL]
         if let configFile, let configuredPaths = try configuredSchemaPaths(in: configFile) {
@@ -71,7 +73,16 @@ enum PluginUtils {
                 Self.schemaExtensions.contains($0.pathExtension.lowercased())
             }
         }
-        return (configFile.map { [$0] } ?? []) + schemaFiles
+        if schemaFiles.isEmpty {
+            throw PluginError.noSchemaFiles(targetName: targetName)
+        }
+
+        var inputFiles = [URL]()
+        if let configFile {
+            inputFiles.append(configFile)
+        }
+        inputFiles.append(contentsOf: schemaFiles)
+        return inputFiles
     }
 
     /// Decodes the optional top-level `schemas` YAML sequence used by the generator.
@@ -202,6 +213,7 @@ enum PluginError: Swift.Error, Equatable, CustomStringConvertible, LocalizedErro
     case generatorFailure(targetName: String)
     case noTargetsMatchingTargetNames([String])
     case noTargetsGenerated(targetNames: [String])
+    case noSchemaFiles(targetName: String)
 
     var description: String {
         switch self {
@@ -211,6 +223,8 @@ enum PluginError: Swift.Error, Equatable, CustomStringConvertible, LocalizedErro
             return "The generator failed to generate GraphQL Swift files for target '\(targetName)'."
         case .noTargetsMatchingTargetNames(let targetNames):
             return "Found no targets with names \(targetNames.joined(separator: ", "))."
+        case .noSchemaFiles(let targetName):
+            return "No GraphQL schema files found for target '\(targetName)'."
         case .noTargetsGenerated(let targetNames):
             return "No targets from inputs \(targetNames.joined(separator: ", ")) were generated."
         }
