@@ -233,7 +233,7 @@ private enum PluginConfigError: Error, CustomStringConvertible {
                 arguments += ["--config", configURL.path]
             }
 
-            let inputFiles = commandInputFiles(
+            let inputFiles = try commandInputFiles(
                 in: target.inputFiles,
                 sourceDirectory: sourceDirectory,
                 configFile: configFile
