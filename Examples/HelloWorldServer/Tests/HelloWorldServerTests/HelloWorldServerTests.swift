@@ -147,4 +147,54 @@ struct HelloWorldServerTests {
                 )
         )
     }
+    
+    @Test func subscriptionUnion() async throws {
+        let schema = try buildGraphQLSchema(resolvers: Resolvers.self)
+        let context = GraphQLContext(
+            users: [
+                "user_1": .init(id: "user_1", name: "John", age: 18, role: .user, email: "john@example.com")
+            ],
+            posts: [
+                "post_1": .init(id: "post_1", title: "Foo", content: "bar", authorId: "1")
+            ]
+        )
+        let stream = try await graphqlSubscribe(
+            schema: schema,
+            request: """
+                subscription {
+                    watchUserOrPost(id: "post_1") {
+                        ... on User {
+                            id
+                            name
+                            email
+                            age
+                            role
+                        }
+                        ... on Post {
+                            id
+                            title
+                            content
+                        }
+                    }
+                }
+                """,
+            context: context
+        ).get()
+
+        var iterator = stream.makeAsyncIterator()
+
+        context.triggerWatch()
+        #expect(
+            try await iterator.next()
+                == GraphQLResult(
+                    data: [
+                        "watchUserOrPost": [
+                            "id": "post_1",
+                            "title": "Foo",
+                            "content": "bar",
+                        ]
+                    ]
+                )
+        )
+    }
 }

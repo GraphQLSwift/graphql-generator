@@ -202,4 +202,16 @@ struct Subscription: GraphQLGenerated.Subscription {
             }
         }.any()
     }
+
+    static func watchUserOrPost(
+        id: String,
+        context: GraphQLContext,
+        info _: GraphQLResolveInfo
+    ) async throws -> AnyAsyncSequence<(any GraphQLGenerated.UserOrPost)?> {
+        return AsyncStream<(any GraphQLGenerated.UserOrPost)?> { continuation in
+            context.onTriggerWatch = { [weak context] in
+                continuation.yield(context?.users[id] ?? context?.posts[id])
+            }
+        }.any()
+    }
 }

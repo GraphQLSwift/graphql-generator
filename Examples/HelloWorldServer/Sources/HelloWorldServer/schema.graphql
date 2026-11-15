@@ -121,4 +121,5 @@ type Mutation {
 
 type Subscription {
   watchUser(id: ID!): User
+  watchUserOrPost(id: ID!): UserOrPost
 }
