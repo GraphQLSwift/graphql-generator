@@ -54,6 +54,7 @@ struct SchemaGeneratorTests {
                 let schema = try GraphQL.buildSchema(source: graphQLRawSDL)
 
                 let bar = schema.typeMap["Bar"] as? GraphQLObjectType
+                bar?.isTypeOf = { source, _ in source is (any GraphQLGenerated.Bar)}
                 let barFields = try bar?.fields() ?? [:]
                 barFields["foo"]?.resolve = { @Sendable source, args, context, info in
                     let parent = try cast(source, to: (any GraphQLGenerated.Bar).self)
@@ -65,6 +66,7 @@ struct SchemaGeneratorTests {
                 }
 
                 let query = schema.typeMap["Query"] as? GraphQLObjectType
+                query?.isTypeOf = { source, _ in source is (any GraphQLGenerated.Query)}
                 let queryFields = try query?.fields() ?? [:]
                 queryFields["foo"]?.resolve = { @Sendable source, args, context, info in
                     let context = try cast(context, to: GraphQLContext.self)
@@ -155,6 +157,7 @@ struct SchemaGeneratorTests {
         let expected = """
 
             let book = schema.typeMap["Book"] as? GraphQLObjectType
+            book?.isTypeOf = { source, _ in source is (any GraphQLGenerated.Book)}
             let bookFields = try book?.fields() ?? [:]
             bookFields["title"]?.resolve = { @Sendable source, args, context, info in
                 let parent = try cast(source, to: (any GraphQLGenerated.Book).self)
@@ -191,6 +194,7 @@ struct SchemaGeneratorTests {
         let expected = """
 
             let query = schema.typeMap["Query"] as? GraphQLObjectType
+            query?.isTypeOf = { source, _ in source is (any GraphQLGenerated.Query)}
             let queryFields = try query?.fields() ?? [:]
             queryFields["user"]?.resolve = { @Sendable source, args, context, info in
                 let context = try cast(context, to: GraphQLContext.self)
@@ -220,6 +224,7 @@ struct SchemaGeneratorTests {
         let expected = """
 
             let mutation = schema.typeMap["Mutation"] as? GraphQLObjectType
+            mutation?.isTypeOf = { source, _ in source is (any GraphQLGenerated.Mutation)}
             let mutationFields = try mutation?.fields() ?? [:]
             mutationFields["createUser"]?.resolve = { @Sendable source, args, context, info in
                 let context = try cast(context, to: GraphQLContext.self)
@@ -249,6 +254,7 @@ struct SchemaGeneratorTests {
         let expected = """
 
             let subscription = schema.typeMap["Subscription"] as? GraphQLObjectType
+            subscription?.isTypeOf = { source, _ in source is (any GraphQLGenerated.Subscription)}
             let subscriptionFields = try subscription?.fields() ?? [:]
             subscriptionFields["userUpdated"]?.resolve = { @Sendable source, _, _, _ in
                 return source

@@ -172,10 +172,17 @@ package struct BuildGraphQLSchemaGenerator {
         case .parent:
             variableName = "\(typeName)Fields"
         }
+        
+        let castType = try swiftTypeDeclaration(
+            for: type,
+            includeNamespace: true,
+            nameGenerator: nameGenerator
+        )
 
         var output = """
 
             let \(typeName) = schema.typeMap["\(type.name)"] as? GraphQLObjectType
+            \(typeName)?.isTypeOf = { source, _ in source is (any \(castType))}
             let \(variableName) = try \(typeName)?.fields() ?? [:]
             """
 
