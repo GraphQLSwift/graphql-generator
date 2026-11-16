@@ -16,6 +16,10 @@ let package = Package(
             name: "GraphQLGeneratorPlugin",
             targets: ["GraphQLGeneratorPlugin"]
         ),
+        .plugin(
+            name: "GraphQLGeneratorCommand",
+            targets: ["GraphQLGeneratorCommand"]
+        ),
         .library(
             name: "GraphQLGeneratorRuntime",
             targets: ["GraphQLGeneratorRuntime"]
@@ -32,10 +36,24 @@ let package = Package(
         .package(url: "https://github.com/jpsim/Yams.git", "4.0.0"..<"7.0.0"),
     ],
     targets: [
-        // Build plugin
         .plugin(
             name: "GraphQLGeneratorPlugin",
             capability: .buildTool(),
+            dependencies: ["GraphQLGenerator"]
+        ),
+        .plugin(
+            name: "GraphQLGeneratorCommand",
+            capability: .command(
+                intent: .custom(
+                    verb: "generate-code-from-graphql",
+                    description: "Generate Swift code from a GraphQL Schema."
+                ),
+                permissions: [
+                    .writeToPackageDirectory(
+                        reason: "To write the generated Swift files back into the source directory of the package."
+                    )
+                ]
+            ),
             dependencies: ["GraphQLGenerator"]
         ),
         .executableTarget(
